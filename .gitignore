@@ -286,3 +286,9 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+*.bin
+*.g3a
+*.d
+*.o
+*.tlog
+/proj/WindowsSim
