@@ -90,13 +90,30 @@ void screen_battle::load(int troop_no)
 
 void screen_battle::update()
 {
+	for (int i = 0; i < 10; i++)
+		if (effects[i][0])
+			effects[i][3]--;
 }
+
+const char messages[][12] = {
+	"NICE",
+	"GREAT",
+	"EXCELLENT"
+};
 
 void screen_battle::draw()
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 
 	draw_icons(false);
+
+	for (int i = 0; i < 10; i++)
+		if (effects[i][0])
+		{
+			int x = effects[i][1];
+			int y = effects[i][2] - 15 + (effects[i][4] * effects[i][4]) / 60;
+			BdispH_AreaFill(x-72, x+64, y, y+18, COLOR_WHITE);
+		}
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -113,6 +130,14 @@ void screen_battle::draw()
 			}
 		}
 	}
+	color_t c = COLOR_BLACK;
+	if (state == 1)
+	{
+		int sth = (gc.clock % 64) - 32;
+		if (sth < 0) sth = -sth;
+		sth = sth * 63 / 32;
+		c = ((sth / 2) << 11) + (sth << 5) + (sth / 2);
+	}
 	for (int i = 0; i < 10; i++)
 	{
 		battle_character& b = bchs[i];
@@ -120,11 +145,32 @@ void screen_battle::draw()
 		{
 			CopySprite(b.image, b.x, b.y, b.width, b.height, false, b.mode);
 			if (b.targeting)
-				b.draw_target_border(COLOR_BLACK);
+			{
+				b.draw_target_border(c);
+			}
 		}
 		b.prev_x = b.x;
 		b.prev_y = b.y;
 	}
+
+	for (int i = 0; i < 10; i++)
+		if (effects[i][0])
+		{
+			if (effects[i][3] < 0)
+				effects[i][0] = 0;
+			else
+			{
+				char buffer[20];
+				memset(buffer, 0, sizeof(buffer));
+				if (effects[i][0] > 0)
+					sprintf(buffer, "%d", effects[i][0]);
+				else sprintf(buffer, messages[-effects[i][0] - 1], effects[i][0]);
+				int x = effects[i][1] - strlen(buffer) * 8;
+				int y = effects[i][2] - 15 + (effects[i][3] * effects[i][3]) / 60;
+				PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+				effects[i][4] = effects[i][3];
+			}
+		}
 }
 
 const char command_text[][12] =
@@ -195,13 +241,15 @@ int screen_battle::routine()
 
 			if (keys.action)
 			{
-				bchs[target_no].set_targeting_false();
 				state = 2;
 				attack(target_no);
 				state = 0;
 			}
 			else if (keys.cancel)
+			{
 				state = 0;
+				bchs[target_no].set_targeting_false();
+			}
 			break;
 		}
 	}
@@ -210,19 +258,42 @@ int screen_battle::routine()
 
 void screen_battle::attack(int target)
 {
+	const int sprite_no[4] = { 0,1,0,2 };
 	int x1 = bchs[0].x;
 	int y1 = bchs[0].y;
-	int px = bchs[0].x;
-	int py = bchs[0].y;
+	int px, py;
 	int nx = bchs[target].x;
 	int ny = bchs[target].y - bchs[target].height;
+
+	for (int i = 1; i < 10; i++)
+		if (bchs[i].hp > 0)
+		{
+			px = bchs[i].x - 70;
+			py = y1;
+			break;
+		}
+
+	for (int i = 0; i < 6; i++)
+		gc.update();
+	for (int i = 0; bchs[0].x < px; i++)
+	{
+		bchs[0].x += 4;
+
+		bchs[0].image = sprite_flipp[sprite_no[(i / 8) % 4]];
+		gc.update();
+	}
+	bchs[target_no].set_targeting_false();
+	bchs[0].image = sprite_flipp[0];
+	px = bchs[0].x;
+	for (int i = 0; i < 6; i++)
+		gc.update();
 
 	for (int a = 0; a < 3; a++)
 	{
 		// 0=Initial -=failed +=success
 		int action_command = 0;
 
-		int range = 8 - a;
+		int range = 10 - a * 2;
 
 		for (int f = 0; f < 40 + range / 2; f++)
 		{
@@ -243,7 +314,7 @@ void screen_battle::attack(int target)
 		}
 		px = nx;
 		py = ny;
-		//Damage(target, cur_bch.AP);
+		damage(target, bchs[0].attack, action_command == 1 ? -a - 1 : 0);
 		if (action_command != 1)
 			break;
 	}
@@ -254,6 +325,13 @@ void screen_battle::attack(int target)
 		bchs[0].y = (py * (40 - f) + y1 * f + (f - 20) * (f - 20) * 7 - 2800) / 40;
 		gc.update();
 	}
+}
+
+void screen_battle::damage(int target, int damage, int message)
+{
+	add_effect(damage, bchs[target].x, bchs[target].y - 10);
+	if (message < 0)
+		add_effect(message, bchs[target].x, bchs[target].y - 27);
 }
 
 void screen_battle::draw_icons(bool always_draw)
@@ -294,9 +372,28 @@ void screen_battle::draw_icons(bool always_draw)
 			else if (state == 1)
 				BdispH_AreaReverse(64 * i + 1, 64 * i + 60, 173, 214);
 
-			int x = 64 * i + 32 - strlen(command_text[command_no]) * 6;
-			int y = 155;
+			int x = 0;
+			int y = 0;
+			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
+			x = 64 * i + 32 - x / 2;
+			y = 155;
 			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+		}
+	}
+}
+
+void screen_battle::add_effect(int type, int x, int y)
+{
+	for (int i = 0; i < 10; i++)
+	{
+		if (!effects[i][0])
+		{
+			effects[i][0] = type;
+			effects[i][1] = x;
+			effects[i][2] = y;
+			effects[i][3] = 30;
+			effects[i][4] = 30;
+			break;
 		}
 	}
 }

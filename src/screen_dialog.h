@@ -5,6 +5,7 @@
 class screen_dialog : public screen {
 public:
 	char text[256];
+
 	void say(screen* parent_, const char* line);
 	virtual void update() override;
 	virtual void draw() override;
@@ -17,6 +18,7 @@ private:
 	int pos;
 	int pos_drawn;
 	bool going;
+	bool padding[3];
 
 	screen* parent;
 };

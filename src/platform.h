@@ -33,14 +33,10 @@ inline void* operator new[](size_t size) {
 inline void operator delete[](void* addr) {
 	free(addr);
 }
-#endif
 
-#if !TARGET_WINSIM
 #define LCD_GRAM	0x202
 #define LCD_BASE	0xB4000000
 #define SYNCO() __asm__ volatile("SYNCO\n\t":::"memory");
-// Module Stop Register 0
-#define MSTPCR0		(volatile unsigned*)0xA4150030
 // DMA0 operation register
 #define DMA0_DMAOR	(volatile unsigned short*)0xFE008060
 #define DMA0_SAR_0	(volatile unsigned*)0xFE008020
@@ -64,7 +60,7 @@ inline void DoDMAlcdNonblockStrip(unsigned y1, unsigned y2) {
 	Bdisp_DefineDMARange(6, 389, y1, y2);
 	Bdisp_DDRegisterSelect(LCD_GRAM);
 
-	*MSTPCR0 &= ~(1 << 21);//Clear bit 21
+	*(volatile unsigned*)MSTPCR0 &= ~(1 << 21);//Clear bit 21
 	*DMA0_CHCR_0 &= ~1;//Disable DMA on channel 0
 	*DMA0_DMAOR = 0;//Disable all DMA
 	*DMA0_SAR_0 = (VRAM_ADDR + (y1 * 384 * 2)) & 0x1FFFFFFF;//Source address is VRAM

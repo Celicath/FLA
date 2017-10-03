@@ -4,7 +4,7 @@
 
 class screen {
 public:
-	bool focused;
+	int no;
 
 	virtual void update() {}
 	virtual void draw() {}

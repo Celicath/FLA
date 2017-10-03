@@ -2,15 +2,12 @@
 #include <fxcg/keyboard.h>
 #include <fxcg/rtc.h>
 #include "keys.h"
-#include "screen_battle.h"
-#include "screen_map.h"
-#include "screen_dialog.h"
 #include "sprites.h"
 #include "platform.h"
 #include "display_helper.h"
 #include "game_control.h"
 
-class game_control gc;
+game_control gc;
 
 // draw entire screen after pausing/menu/etc.
 void game_control::redraw()
@@ -36,7 +33,7 @@ void game_control::pause()
 	Bdisp_AreaClr(&area, 1, COLOR_WHITE);
 
 	DmaWaitNext();
-	PrintCXY(135, 80, "Paused", TEXT_MODE_TRANSPARENT_BACKGROUND, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	PrintCXY(138, 72, "Paused", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	int key;
 	do
 	{
@@ -66,7 +63,8 @@ void game_control::start()
 	screens[1] = new screen_dialog;
 	screens[2] = new screen_battle;
 	((screen_battle*)screens[2])->load(1);
-	active_screen = screens[2];
+	int next_screen = 2;
+	active_screen = screens[next_screen];
 
 	Bdisp_EnableColor(1);
 	Bdisp_AllClr_VRAM();
@@ -79,7 +77,6 @@ void game_control::start()
 	clock = 0;
 	last_draw = 0;
 
-	int next_screen = 2;
 	while (next_screen != -1)
 	{
 		next_screen = screens[next_screen]->routine();

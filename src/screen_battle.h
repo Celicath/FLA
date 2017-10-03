@@ -20,6 +20,8 @@ public:
 	int speed;
 	int luck;
 	bool targeting;
+	bool padding[3];
+
 	battle_character() : targeting(false) { };
 	battle_character(int no);
 	void set_targeting_false();
@@ -43,8 +45,11 @@ private:
 	int target_no;
 	int state;
 	void draw_icons(bool draw_icons);
+	void add_effect(int type, int x, int y);
 
 	void attack(int target);
+	void damage(int target, int damage, int message);
 
 	battle_character bchs[10];	// 0=flipp, 1~9=enemies
+	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
 };

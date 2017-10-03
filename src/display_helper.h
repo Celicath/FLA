@@ -24,7 +24,8 @@ inline void BdispH_AreaReverse(int x1, int x2, int y1, int y2)
 	{
 		for (int i = x1; i <= x2; i++)
 		{
-			*(VRAM++) = 0xffff - *VRAM;
+			*VRAM = 0xffff - *VRAM;
+			VRAM++;
 		}
 		VRAM += LCD_WIDTH_PX - (x2 - x1 + 1);
 	}
