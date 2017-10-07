@@ -1,6 +1,7 @@
 #include "fxcg/display.h"
 
-void CopySprite(const color_t* sprite, int x, int y, int width, int height, bool flip = false, int mode = 0);
+void CopySprite(const color_t* sprite, int x, int y, int width, int height, int mode = 0, int flip = false);
+void CopySpriteScale(const color_t* sprite, int x, int y, int width, int height, int mode, int hratio, int vratio);
 
 extern const color_t sprite_enemy1[];
 extern const color_t sprite_flipp[7][1024];

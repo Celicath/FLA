@@ -110,7 +110,7 @@ void screen_map::char_draw(map_character& ch, bool flip)
 	}
 	ch.prev_x = ch.x - x + 176;
 	ch.prev_y = ch.y - y + start_row + 80;
-	CopySprite(ch.image, ch.prev_x, ch.prev_y, ch.width, ch.height, flip, ch.mode);
+	CopySprite(ch.image, ch.prev_x, ch.prev_y, ch.width, ch.height, ch.mode, flip);
 }
 
 inline color_t screen_map::get_pixel(int xc, int yc)
@@ -148,7 +148,7 @@ void screen_map::draw()
 
 	for (int i = 0; i < 20; i++)
 		if (npcs[i].image != nullptr)
-			CopySprite(npcs[i].image, npcs[i].x - x + 176, npcs[i].y - y + start_row + 80, npcs[i].width, npcs[i].height, false, npcs[i].mode);
+			CopySprite(npcs[i].image, npcs[i].x - x + 176, npcs[i].y - y + start_row + 80, npcs[i].width, npcs[i].height, npcs[i].mode);
 }
 
 void screen_map::redraw()

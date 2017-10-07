@@ -62,7 +62,7 @@ void game_control::start()
 	((screen_map*)screens[0])->load(1);
 	screens[1] = new screen_dialog;
 	screens[2] = new screen_battle;
-	((screen_battle*)screens[2])->load(1);
+	((screen_battle*)screens[2])->load(0);
 	int next_screen = 2;
 	active_screen = screens[next_screen];
 
@@ -72,14 +72,21 @@ void game_control::start()
 	fps = 63;
 	fps_count[0] = fps_count[1] = 0;
 
-	redraw();
 	prev_time = RTC_GetTicks();
 	clock = 0;
 	last_draw = 0;
+	redraw();
 
 	while (next_screen != -1)
 	{
-		next_screen = screens[next_screen]->routine();
+		int next = screens[next_screen]->routine();
+		update();
+		if (next != -1)
+		{
+			active_screen = screens[next];
+			next_screen = next;
+			redraw();
+		}
 	}
 	int key;
 	for (;;)

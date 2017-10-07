@@ -1,7 +1,7 @@
 #include "sprites.h"
 #include "platform.h"
 
-void CopySprite(const color_t* sprite, int x, int y, int width, int height, bool flip, int mode)
+void CopySprite(const color_t* sprite, int x, int y, int width, int height, int mode, int flip)
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 	VRAM += LCD_WIDTH_PX*y + x;
@@ -15,13 +15,36 @@ void CopySprite(const color_t* sprite, int x, int y, int width, int height, bool
 			{
 				color_t c = *sprite;
 				if ((mode == 1) && c != 0) c = 0xffff - c;
-				*VRAM = c;
+				*VRAM = c; 
 			}
 			VRAM++;
 			sprite += 1 - 2 * flip;
 		}
 		sprite += flip * width;
 		VRAM += LCD_WIDTH_PX - width;
+	}
+}
+
+void CopySpriteScale(const color_t* sprite, int x, int y, int width, int height, int mode, int hratio, int vratio)
+{
+	if (hratio == 0 || vratio == 0) return;
+	color_t* VRAM = (color_t*)GetVRAMAddress();
+	for (int j = 0; j < height; j++)
+	{
+		int sy = y + ((height - 1) * (16 - vratio) + j * vratio) / 16;
+		if (sy >= 24 && sy < LCD_HEIGHT_PX)
+		{
+			for (int i = 0; i < width; i++)
+			{
+				int sx = x + ((width - 1) * (16 - hratio) + 2 * i * hratio) / 32;
+				if (sx >= 0 && sx < 384 && sprite[width*j + i] != 0xffff)
+				{
+					color_t c = sprite[width*j + i];
+					if ((mode == 1) && c != 0) c = 0xffff - c;
+					*(VRAM + LCD_WIDTH_PX*sy + sx) = c;
+				}
+			}
+		}
 	}
 }
 

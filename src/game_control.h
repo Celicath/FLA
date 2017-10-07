@@ -12,6 +12,7 @@ public:
 	screen* screens[10];
 	screen* active_screen;
 	int clock;
+	int prev_time;
 
 	void start();
 	void redraw();
@@ -21,7 +22,6 @@ public:
 	void set_active_screen(screen* screen);
 
 private:
-	int prev_time;
 	int fps;
 	int fps_count[2];
 	int last_draw;

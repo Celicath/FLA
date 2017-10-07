@@ -19,12 +19,14 @@ public:
 	int defense;
 	int speed;
 	int luck;
-	bool targeting;
-	bool padding[3];
+	int target_mode;	// 0=no border 1=border -1=erase border
 
-	battle_character() : targeting(false) { };
+	int hpbar;
+	int hpbar_duration;
+	int death_animation;
+
+	battle_character() : target_mode(0) { };
 	battle_character(int no);
-	void set_targeting_false();
 	void draw_target_border(color_t color);
 private:
 	void set_stat(const color_t* image_, int width_, int height_, int mode_, int hp_, int attack_, int defense_, int speed_, int luck_);
@@ -44,12 +46,18 @@ private:
 	int command_no;
 	int target_no;
 	int state;
-	void draw_icons(bool draw_icons);
-	void add_effect(int type, int x, int y);
-
-	void attack(int target);
-	void damage(int target, int damage, int message);
+	int target_timer;
 
 	battle_character bchs[10];	// 0=flipp, 1~9=enemies
 	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
+
+	void draw_icons(bool draw_icons);
+	void add_effect(int type, int x, int y);
+
+	void find_target();
+
+	void attack(int target);
+	void damage(int target, int damage, int message);
+	void trigger_deaths();
+	void wait_for_deaths();
 };
