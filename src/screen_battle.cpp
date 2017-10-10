@@ -66,6 +66,8 @@ void battle_character::draw_target_border(color_t color)
 
 screen_battle::screen_battle()
 {
+	for (int i = 0; i < 10; i++)
+		effects[i][0] = 0;
 }
 
 void screen_battle::load(int troop_no)
@@ -176,18 +178,18 @@ void screen_battle::draw()
 				else
 				{
 					int h = 16;
-					int v = 16;
+					int v = 32;
 					if (b.death_animation < 96)
 					{
 						h = (b.death_animation % 32) - 16;
 						if (h < 0) h = -h;
 						h = h * 2 - 16;
-						v = 16;
+						v = 32;
 					}
 					else
 					{
 						h = 16;
-						v = 64 - b.death_animation / 2;
+						v = 128 - b.death_animation;
 					}
 					CopySpriteScale(b.image, b.x, b.y, b.width, b.height, b.mode, h, v);
 				}
@@ -289,10 +291,10 @@ int screen_battle::routine()
 			}
 			else
 			{
-				for (int i = 1; i <= 6; i++)
+				for (int i = 0; i < 6; i++)
 					if (keys.f_key[i])
 					{
-						command_no = i - 1;
+						command_no = i;
 						find_target();
 						state = 1;
 					}
@@ -321,7 +323,7 @@ int screen_battle::routine()
 			}
 			bchs[target_no].target_mode = 1;
 
-			if (keys.action)
+			if (keys.action || keys.f_key[command_no])
 			{
 				state = 2;
 				attack(target_no);
@@ -331,6 +333,15 @@ int screen_battle::routine()
 			{
 				state = 0;
 				bchs[target_no].target_mode = -1;
+			}
+			else
+			{
+				for (int i = 0; i < 6; i++)
+					if (keys.f_key[i])
+					{
+						command_no = i;
+						find_target();
+					}
 			}
 			break;
 		}
@@ -410,7 +421,7 @@ void screen_battle::attack(int target)
 			}
 			else if (action_command != 0) break;
 
-			if (keys.action && action_command >= 0)
+			if ((keys.action || keys.f_key[command_no]) && action_command >= 0)
 			{
 				if (f < 40 - (range + 1) / 2)
 					action_command = (f < 20 ? 0 : -1);

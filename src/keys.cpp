@@ -22,9 +22,9 @@ class keys_type keys;
 void updateKeys()
 {
 	bool now, now2, now3;
-	for (int i = 1; i <= 6; i++)
+	for (int i = 0; i < 6; i++)
 	{
-		now = keyDown_fast(89 - i * 10);
+		now = keyDown_fast(79 - i * 10);
 		keys.f_key[i] = (!keys.f_key_hold[i] && now);
 		keys.f_key_hold[i] = now;
 	}

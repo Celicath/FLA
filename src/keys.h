@@ -6,7 +6,7 @@ bool keyDown_fast(unsigned char keyCode);
 void updateKeys();
 
 struct keys_type {
-	bool f_key[7];	// F1~F6. 0=no press, 1~6=Fn pressed
+	bool f_key[6];	// F1~F6 mapped to 0~5
 	bool action;	// Action key. EXE or 0
 	bool cancel;	// Cancel key. EXIT or . or (-)
 	bool menu;		// Menu key. MENU
@@ -17,7 +17,7 @@ struct keys_type {
 	bool up;
 	bool down;
 
-	bool f_key_hold[7];
+	bool f_key_hold[6];
 	bool action_hold;
 	bool cancel_hold;
 	bool menu_hold;

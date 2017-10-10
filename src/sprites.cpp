@@ -31,7 +31,7 @@ void CopySpriteScale(const color_t* sprite, int x, int y, int width, int height,
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 	for (int j = 0; j < height; j++)
 	{
-		int sy = y + ((height - 1) * (16 - vratio) + j * vratio) / 16;
+		int sy = y + ((height - 1) * (32 - vratio) + j * vratio) / 32;
 		if (sy >= 24 && sy < LCD_HEIGHT_PX)
 		{
 			for (int i = 0; i < width; i++)
