@@ -3,6 +3,8 @@
 
 void CopySprite(const color_t* sprite, int x, int y, int width, int height, int mode, int flip)
 {
+	x -= width / 2;
+	y -= height / 2;
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 	VRAM += LCD_WIDTH_PX*y + x;
 	sprite -= flip;
@@ -25,24 +27,45 @@ void CopySprite(const color_t* sprite, int x, int y, int width, int height, int 
 	}
 }
 
-void CopySpriteScale(const color_t* sprite, int x, int y, int width, int height, int mode, int hratio, int vratio)
+void CopySpriteScale(const color_t* sprite, int x, int y, int width, int height, int mode, int hratio, int vratio, int rotation)
 {
+	// draw sprite with specified ratio and rotation
+	// scales by (hratio/16, vratio/32)
+	// rotates by (rotation*90) degrees
+
 	if (hratio == 0 || vratio == 0) return;
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 	for (int j = 0; j < height; j++)
 	{
-		int sy = y + ((height - 1) * (32 - vratio) + j * vratio) / 32;
-		if (sy >= 24 && sy < LCD_HEIGHT_PX)
+		int dy = ((height - 1) * (32 - vratio) + j * vratio) / 32 - height / 2;
+		for (int i = 0; i < width; i++)
 		{
-			for (int i = 0; i < width; i++)
+			int dx = ((width - 1) * (16 - hratio) + 2 * i * hratio) / 32 - width / 2;
+			int sx, sy;
+			switch(rotation & 3)
 			{
-				int sx = x + ((width - 1) * (16 - hratio) + 2 * i * hratio) / 32;
-				if (sx >= 0 && sx < 384 && sprite[width*j + i] != 0xffff)
-				{
-					color_t c = sprite[width*j + i];
-					if ((mode == 1) && c != 0) c = 0xffff - c;
-					*(VRAM + LCD_WIDTH_PX*sy + sx) = c;
-				}
+			case 0:
+				sx = x + dx;
+				sy = y + dy;
+				break;
+			case 1:
+				sx = x - dy;
+				sy = y + dx;
+				break;
+			case 2:
+				sx = x - dx;
+				sy = y - dy;
+				break;
+			case 3:
+				sx = x + dy;
+				sy = y - dx;
+				break;
+			}
+			if (sy >= 24 && sy < LCD_HEIGHT_PX && sx >= 0 && sx < 384 && sprite[width*j + i] != 0xffff)
+			{
+				color_t c = sprite[width*j + i];
+				if ((mode == 1) && c != 0) c = 0xffff - c;
+				*(VRAM + LCD_WIDTH_PX*sy + sx) = c;
 			}
 		}
 	}

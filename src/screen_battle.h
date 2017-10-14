@@ -10,6 +10,7 @@ public:
 	int y;
 	int prev_x;
 	int prev_y;
+	int need_update;
 	int width;
 	int height;
 	int mode;
@@ -48,16 +49,24 @@ private:
 	int state;
 	int target_timer;
 
+	int flipp_rotation;
+
 	battle_character bchs[10];	// 0=flipp, 1~9=enemies
 	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
 
 	void draw_icons(bool draw_icons);
 	void add_effect(int type, int x, int y);
 
-	void find_target();
+	bool targetable(int target, int skill_no);
+	void find_target(int skill_no);
 
-	void attack(int target);
+	// helper functions
 	void damage(int target, int damage, int message);
 	void trigger_deaths();
 	void wait_for_deaths();
+	void push(int target, int distance);
+
+	// attacks
+	void attack_jump(int target);
+	void attack_push(int target);
 };

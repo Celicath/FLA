@@ -21,6 +21,8 @@ int animation_cycle = 2;
 
 void screen_map::load(int loc_)
 {
+	x = 0;
+	y = 0;
 	loc = loc_;
 	for (int i = 0; i < 20; i++)
 		npcs[i].image = nullptr;
@@ -57,17 +59,19 @@ void screen_map::update()
 	for (int i = 0; i < 20; i++)
 		if (npcs[i].image != nullptr)
 		{
-			if (nx + flipp.width > npcs[i].x && nx < npcs[i].x + npcs[i].width &&
-				ny + flipp.height > npcs[i].y && ny < npcs[i].y + npcs[i].height)
+			int tx = (flipp.width + npcs[i].width) / 2;
+			int ty = (flipp.height + npcs[i].height) / 2;
+			if (nx > npcs[i].x - tx && nx < npcs[i].x + tx &&
+				ny > npcs[i].y - ty && ny < npcs[i].y + ty)
 			{
-				if (nx + flipp.width < npcs[i].x + 5)
-					nx = npcs[i].x - flipp.width;
-				else if (nx + 5 > npcs[i].x + npcs[i].width)
-					nx = npcs[i].x + npcs[i].width;
-				if (ny + flipp.height < npcs[i].y + 5)
-					ny = npcs[i].y - flipp.height;
-				else if (ny + 5 > npcs[i].y + npcs[i].height)
-					ny = npcs[i].y + npcs[i].height;
+				if (nx < npcs[i].x - tx + 5)
+					nx = npcs[i].x - tx;
+				else if (nx > npcs[i].x + tx - 5)
+					nx = npcs[i].x + tx;
+				else if (ny < npcs[i].y - ty + 5)
+					ny = npcs[i].y - ty;
+				else if (ny > npcs[i].y + ty - 5)
+					ny = npcs[i].y + ty;
 			}
 		}
 	if ((nx - flipp.x) * (ny - flipp.y))
@@ -98,18 +102,20 @@ const int start_row = 24;
 void screen_map::char_draw(map_character& ch, bool flip)
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
-	VRAM += LCD_WIDTH_PX * ch.prev_y + ch.prev_x;
-	for (int j = ch.prev_y; j < ch.prev_y + ch.height; j++)
+	int x1 = ch.prev_x - ch.width / 2;
+	int y1 = ch.prev_y - ch.height / 2;
+	VRAM += LCD_WIDTH_PX * y1 + x1;
+	for (int j = y1; j < y1 + ch.height; j++)
 	{
-		for (int i = ch.prev_x; i < ch.prev_x + ch.width; i++)
+		for (int i = x1; i < x1 + ch.width; i++)
 		{
 			if (i >= 0 && j >= 24 && i < 384 && j < 216)
 				*(VRAM++) = get_pixel(x + i, y + j - start_row);
 		}
 		VRAM += LCD_WIDTH_PX - ch.width;
 	}
-	ch.prev_x = ch.x - x + 176;
-	ch.prev_y = ch.y - y + start_row + 80;
+	ch.prev_x = ch.x - x + 192;
+	ch.prev_y = ch.y - y + start_row + 96;
 	CopySprite(ch.image, ch.prev_x, ch.prev_y, ch.width, ch.height, ch.mode, flip);
 }
 
@@ -148,7 +154,7 @@ void screen_map::draw()
 
 	for (int i = 0; i < 20; i++)
 		if (npcs[i].image != nullptr)
-			CopySprite(npcs[i].image, npcs[i].x - x + 176, npcs[i].y - y + start_row + 80, npcs[i].width, npcs[i].height, npcs[i].mode);
+			CopySprite(npcs[i].image, npcs[i].x - x + 192, npcs[i].y - y + start_row + 96, npcs[i].width, npcs[i].height, npcs[i].mode);
 }
 
 void screen_map::redraw()
