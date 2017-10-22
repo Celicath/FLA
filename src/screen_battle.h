@@ -22,9 +22,15 @@ public:
 	int luck;
 	int target_mode;	// 0=no border 1=border -1=erase border
 
+	int prev;
+	int next;
+
 	int hpbar;
 	int hpbar_duration;
 	int death_animation;
+
+	int wait_gauge;
+	int rotation;
 
 	battle_character() : target_mode(0) { };
 	battle_character(int no);
@@ -49,24 +55,25 @@ private:
 	int state;
 	int target_timer;
 
-	int flipp_rotation;
-
 	battle_character bchs[10];	// 0=flipp, 1~9=enemies
 	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
 
 	void draw_icons(bool draw_icons);
-	void add_effect(int type, int x, int y);
+	int add_effect(int type, int x, int y);
 
 	bool targetable(int target, int skill_no);
 	void find_target(int skill_no);
 
 	// helper functions
-	void damage(int target, int damage, int message);
+	int damage(int target, int damage, int message);
 	void trigger_deaths();
 	void wait_for_deaths();
-	void push(int target, int distance);
+	void die(int target);
 
 	// attacks
 	void attack_jump(int target);
-	void attack_push(int target);
+	void attack_dive(int target);
+
+	// enemy attack
+	void enemy_attack(int attacker);
 };
