@@ -7,6 +7,10 @@
 #include "display_helper.h"
 #include "game_control.h"
 
+#include "screen_battle.h"
+#include "screen_upgrade.h"
+#include "screen_dialog.h"
+
 game_control gc;
 
 // draw entire screen after pausing/menu/etc.
@@ -56,14 +60,15 @@ void game_control::start()
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 
+	srand(RTC_GetTicks());
+
 	for (int i = 0; i < 10; i++)
 		screens[i] = nullptr;
-	screens[0] = new screen_map;
-	((screen_map*)screens[0])->load(1);
+	screens[0] = new screen_upgrade;
 	screens[1] = new screen_dialog;
 	screens[2] = new screen_battle;
 	((screen_battle*)screens[2])->load(0);
-	int next_screen = 2;
+	int next_screen = 0;
 	active_screen = screens[next_screen];
 
 	Bdisp_EnableColor(1);

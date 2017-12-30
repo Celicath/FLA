@@ -269,14 +269,14 @@ void screen_battle::draw()
 		}
 }
 
-const char command_text[][12] =
+const char command_text[][8] =
 {
 	"Jump",
 	"Dive",
-	"Item",
-	"Guard",
-	"Tactics",
-	"Run"
+	"",
+	"",
+	"Cards",
+	"Status"
 };
 
 void screen_battle::redraw()

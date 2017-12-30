@@ -19,7 +19,6 @@ public:
 
 class screen_map : public screen {
 public:
-	char text[256];
 	void load(int loc);
 	virtual void update() override;
 	virtual void draw() override;

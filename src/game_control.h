@@ -1,9 +1,5 @@
 #pragma once
 
-#include "screen_battle.h"
-#include "screen_map.h"
-#include "screen_dialog.h"
-
 class screen;
 
 class game_control
