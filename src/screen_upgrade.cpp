@@ -1,83 +1,95 @@
+
 #include "screen_upgrade.h"
 #include "display_helper.h"
 #include "keys.h"
 #include "sprites.h"
 #include "game_control.h"
 #include "screen_dialog.h"
+#include "utils.h"
+#include "player.h"
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 #define HPBAR_SIZE 50
 
-const char upgrade_names[][12] =
+const char upgrade_name[][16] =
 {
-	"Level UP!",
-	"Level UP!",
-	"Level UP!",
+	"Level UP (Atk)",
+	"Level UP (Def)",
+	"Level UP (Spd)",
 	"Fireball",
 	"Frostbolt",
-	"Whirlwind",
-	"Trap"
+	"Strong Wind",
+	"Ground Trap"
 };
 
-const char upgrade_descs[][100] =
+/* 5th digit: 0=passive 1=card
+   1st digit: 0=normal 1=fire 2=ice 3=wind 4=earth */
+const int upgrade_type[] =
 {
-	"HP+2, Atk+1",
-	"HP+2, Def+1",
-	"HP+2, Spd+1",
-	"Deals 6 damage to small area.",
-	"Deals 4 damage to small area and slows them.",
-	"Deals 1-6 damage to all enemies and push them to right.",
-	"Deals 6 damage when activated. Effective against stacked enemies."
+	0, 0, 0, 6, 7, 8, 9
 };
 
-const int upgrade_types[] =
+const char type_name[][16] =
 {
-	0, 0, 0, 1, 2, 3, 4
+	"Passive",
+	"Passive, Fire",
+	"Passive, Ice",
+	"Passive, Wind",
+	"Passive, Earth",
+	"Card",
+	"Card, Fire",
+	"Card, Ice",
+	"Card, Wind",
+	"Card, Earth",
 };
 
-const color_t type_colors[] =
+const color_t type_colors[] = { COLOR_WHITE, 0xFE18, 0xE71F, 0xC7F8, 0xFFF0 };
+//const color_t type_colors2[] = { COLOR_WHITE, 0xF800, 0x001F, 0x0600, 0xC600 };
+
+upgrade::upgrade(int no_) : no(no_), selected(false) { }
+
+void upgrade::draw(int x, int y)
 {
-	COLOR_WHITE, 0xFE18, 0xE71F, 0xC7F8, 0xFFF0
-};
+	const char* name = upgrade_name[no];
+	int type = upgrade_type[no] % 5;
+	int category = upgrade_type[no] / 5;
 
-upgrades::upgrades(int no_) : no(no_), selected(false) { }
+	int width = 200;
+	int height = 20;
 
-void upgrades::draw(int x, int y)
-{
-	const char* name = upgrade_names[no];
-	const char* desc = upgrade_descs[no];
-	int type = upgrade_types[no];
-
-	int width = 80;
-	int height = 100;
+	if (selected)
+	{
+		BdispH_AreaFill(x - 2, x + width + 2, y - 2, y + height + 2, COLOR_BLACK);
+		BdispH_AreaFill(x - 1, x + width + 1, y - 1, y + height + 1, COLOR_WHITE);
+	}
+	else BdispH_AreaFill(x - 2, x + width + 2, y - 2, y + height + 2, COLOR_WHITE);
 
 	BdispH_AreaFill(x, x + width, y, y + height, COLOR_BLACK);
 	BdispH_AreaFill(x + 1, x + width - 1, y + 1, y + height - 1, type_colors[type]);
-	if (selected)
-	{
-		BdispH_AreaFill(x + 2, x + width - 2, y + 2, y + height - 2, COLOR_BLACK);
-		BdispH_AreaFill(x + 3, x + width - 3, y + 3, y + height - 3, type_colors[type]);
-	}
 
-	int s = 0;
-	int t = 0;
-	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
-	s = x + (width - s) / 2;
-	t = y + 5;
+	int s = x + 2;
+	int t = y + 2;
 	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 }
 
 screen_upgrade::screen_upgrade()
 {
-	load();
 }
 
-void screen_upgrade::load()
+void screen_upgrade::shuffle()
 {
-	for (int i = 0; i < 10; i++)
-		ups[i] = rand() % 6;
+	for (int i = 0; i < 7; i++)
+	{
+		ups[i] = upgrade(ran() % 7);
+		for (int j = 0; j < i; j++)
+			if (ups[i].no == ups[j].no)
+			{
+				i--;
+				break;
+			}
+	}
 }
 
 void screen_upgrade::update()
@@ -88,65 +100,97 @@ void screen_upgrade::draw()
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 
-	if (need_update_ups)
+	if (need_redraw)
 	{
-		need_update_ups = false;
+		need_redraw = false;
 		redraw();
 	}
 }
 
 
+char buffer[60];
+
 void screen_upgrade::redraw()
 {
+	memset(buffer, 0, sizeof(buffer));
+	sprintf(buffer, "- Choose bonus: %d -", pl.rest);
 	int s = 10;
-	int t = 30;
-	PrintMini(&s, &t, "Choose upgrade", 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	int t = 10;
+	BdispH_AreaFill(s, 200, t, t+20, COLOR_WHITE);
+	PrintMini(&s, &t, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
-	for (int i = 0; i < 3; i++)
-		ups[i].draw(100 * i + 15, 60);
+	for (int i = 0; i < 4; i++)
+		ups[i].draw(20, 38 + 30 * i);
 
-	const char* name = upgrade_names[ups[selected_no].no];
-	const char* desc = upgrade_descs[ups[selected_no].no];
+	draw_desc();
+}
 
-	BdispH_AreaFill(10, 383, 170, 210, COLOR_WHITE);
+void screen_upgrade::draw_desc()
+{
+	int no = ups[selected_no].no;
+	const char* name = upgrade_name[no];
 
-	s = 10;
-	t = 170;
+	int s = 10;
+	int t = 160;
+	BdispH_AreaFill(s, 383, t, 215, COLOR_WHITE);
+
 	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+
 	s = 15;
-	t = 185;
-	PrintMini(&s, &t, desc, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	t = 183;
+	PrintMiniMini(&s, &t, type_name[upgrade_type[no]], 0x50, TEXT_COLOR_BLACK, 0);
+
+	memset(buffer, 0, sizeof(buffer));
+	if (no < 3)
+		sprintf(buffer, "HP+%d, %s+1", 2, no == 0 ? "Atk" : no == 1 ? "Def" : "Spd");
+	else if (no == 3)
+		sprintf(buffer, "6 damage to Area(small).");
+	else if (no == 4)
+		sprintf(buffer, "4 damage + slow to Area(small).");
+	else if (no == 5)
+		sprintf(buffer, "3 damage + knockback to all enemies.");
+	else if (no == 6)
+		sprintf(buffer, "Sets up a 6 damage trap. 2x damage to stacked enemies.");
+	s = 15;
+	t = 196;
+	PrintMiniMini(&s, &t, buffer, 0x40, TEXT_COLOR_BLACK, 0);
 }
 
 int screen_upgrade::routine()
 {
-	state = 0;
-	for (;;)
+	pl.rest++;
+
+	while (pl.rest)
 	{
-		gc.update();
-		switch (state)
+		shuffle();
+		need_redraw = true;
+		selected_no = 0;
+		for (int i = 0; i < 4; i++)
+			ups[i].selected = (i == 0);
+
+		for (;;)
 		{
-		case 0:
-			int diff = keys.right - keys.left;
+			gc.update();
+			int diff = keys.down - keys.up;
 			if (diff)
 			{
 				ups[selected_no].selected = false;
-				selected_no = (selected_no + diff + 3) % 3;
+				selected_no = (selected_no + diff + 4) % 4;
 				ups[selected_no].selected = true;
-				need_update_ups = true;
+				need_redraw = true;
 			}
 
 			if (keys.action)
 			{
-				// do some actions
-				state = 1;
+				pl.upgrades[ups[selected_no].no]++;
+				pl.rest--;
+				break;
 			}
 		}
 	}
-	state = 0;
 	DmaWaitNext();
 	MsgBoxPush(4);
-	PrintCXY(80, 42, "Wait for next stage", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	PrintCXY(80, 42, "Next stage", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	PrintCXY(84, 90, "Press [EXIT]", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	int key;
 	do
@@ -155,5 +199,5 @@ int screen_upgrade::routine()
 	} while (key != KEY_CTRL_EXIT);
 	MsgBoxPop();
 	gc.prev_time = RTC_GetTicks();
-	return 0;
+	return 2;
 }

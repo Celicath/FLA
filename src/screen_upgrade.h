@@ -2,15 +2,15 @@
 
 #include "screen.h"
 
-class upgrades
+class upgrade
 {
 public:
 	int no;
 	const color_t* image;
 	bool selected;
 
-	upgrades() { }
-	upgrades(int no_);
+	upgrade() { }
+	upgrade(int no_);
 
 	void draw(int x, int y);
 };
@@ -19,16 +19,17 @@ public:
 class screen_upgrade : public screen {
 public:
 	screen_upgrade();
-	void load();
+	void shuffle();
 	virtual void update() override;
 	virtual void draw() override;
 	virtual void redraw() override;
 	virtual int routine() override;
 private:
+	void draw_desc();
 	int selected_no;
-	int state;
 
-	bool need_update_ups;
+	bool need_redraw;
 
-	upgrades ups[10];
+	int rest;
+	upgrade ups[10];
 };

@@ -63,9 +63,9 @@
     <ClCompile Include="..\src\screen_dialog.cpp" />
     <ClCompile Include="..\src\screen_map.cpp" />
     <ClCompile Include="..\src\sprites.cpp" />
-    <ClCompile Include="..\src\character.cpp" />
     <ClCompile Include="..\src\game_control.cpp" />
     <ClCompile Include="..\src\screen_upgrade.cpp" />
+    <ClCompile Include="..\src\utils.cpp" />
     <None Include="..\..\calctype\calctype.inl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
     </None>
@@ -83,14 +83,15 @@
     <ClInclude Include="..\src\display_helper.h" />
     <ClInclude Include="..\src\keys.h" />
     <ClInclude Include="..\src\platform.h" />
+    <ClInclude Include="..\src\player.h" />
     <ClInclude Include="..\src\screen.h" />
     <ClInclude Include="..\src\screen_battle.h" />
     <ClInclude Include="..\src\screen_dialog.h" />
     <ClInclude Include="..\src\screen_upgrade.h" />
     <ClInclude Include="..\src\sprites.h" />
-    <ClInclude Include="..\src\character.h" />
     <ClInclude Include="..\src\game_control.h" />
     <ClInclude Include="..\src\screen_map.h" />
+    <ClInclude Include="..\src\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />

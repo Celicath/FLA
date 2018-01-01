@@ -83,18 +83,3 @@ inline void ShowDisplay()
 	DoDMAlcdNonblockStrip(0, 215);
 #endif
 }
-
-inline float Q_rsqrt(float f)
-{
-	long i;
-	float x2, y;
-	const float threehalfs = 1.5F;
-
-	x2 = f * 0.5f;
-	y = f;
-	i = *(long *)&y;
-	i = 0x5f3759df - (i >> 1);
-	y = *(float *)&i;
-	y = y * (threehalfs - (x2 * y * y));
-	return y;
-}

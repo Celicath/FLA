@@ -54,13 +54,13 @@
     <ClCompile Include="..\src\game_control.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\character.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\screen_battle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\screen_upgrade.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,9 +89,6 @@
     <ClInclude Include="..\src\display_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\character.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\game_control.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -102,6 +99,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\screen_upgrade.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
