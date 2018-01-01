@@ -54,7 +54,6 @@ void upgrade::draw(int x, int y)
 {
 	const char* name = upgrade_name[no];
 	int type = upgrade_type[no] % 5;
-	int category = upgrade_type[no] / 5;
 
 	int width = 200;
 	int height = 20;
@@ -98,8 +97,6 @@ void screen_upgrade::update()
 
 void screen_upgrade::draw()
 {
-	color_t* VRAM = (color_t*)GetVRAMAddress();
-
 	if (need_redraw)
 	{
 		need_redraw = false;

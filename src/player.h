@@ -1,8 +1,11 @@
+#pragma once
+
 class player
 {
 public:
+	player();
 	int upgrades[100];
-	int rest = 2;
+	int rest;
 };
 
-player pl;
+static player pl;
