@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include "screen_battle.h"
+#include "screen_briefing.h"
 #include "screen_upgrade.h"
 #include "screen_dialog.h"
 
@@ -67,10 +68,10 @@ void game_control::start()
 	for (int i = 0; i < 10; i++)
 		screens[i] = nullptr;
 	screens[0] = new screen_upgrade;
-	screens[1] = new screen_dialog;
+	screens[1] = new screen_briefing;
 	screens[2] = new screen_battle;
-	((screen_battle*)screens[2])->load(0);
-	int next_screen = 0;
+	screens[3] = new screen_dialog;
+	int next_screen = 2;
 	active_screen = screens[next_screen];
 
 	Bdisp_EnableColor(1);
@@ -83,15 +84,17 @@ void game_control::start()
 	clock = 0;
 	last_draw = 0;
 
-	while (next_screen != -1)
+	for (int level = 1; level <= 20; )
 	{
-		int next = screens[next_screen]->routine();
+		((screen_battle*)screens[2])->load(level);
+		redraw();
+		next_screen = screens[next_screen]->routine();
 		update();
-		if (next != -1)
+		if (next_screen != -1)
 		{
-			active_screen = screens[next];
-			next_screen = next;
-			redraw();
+			active_screen = screens[next_screen];
+			if (next_screen == 2)
+				level++;
 		}
 	}
 	int key;
@@ -132,7 +135,9 @@ void game_control::update()
 		}
 		else if (now < prev_time)
 			prev_time = now;
-#if !TARGET_WINSIM
+#if TARGET_WINSIM
+		Sleep(15);
+#else
 		CMT_Delay_micros(100);
 #endif
 	}
@@ -149,7 +154,7 @@ void game_control::draw()
 		fps -= 32;
 		char buffer[20];
 		memset(buffer, 0, sizeof(buffer));
-		sprintf(buffer, "fps=%d", fps_count[0] + fps_count[1], lag);
+		sprintf(buffer, "fps=%d", fps_count[0] + fps_count[1]);
 		fps_count[1] = fps_count[0];
 		fps_count[0] = 0;
 		int x = 0;

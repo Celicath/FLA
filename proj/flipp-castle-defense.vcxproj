@@ -53,6 +53,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Emulator|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\character.cpp" />
     <ClCompile Include="..\src\display_helper.cpp" />
     <ClCompile Include="..\src\keys.cpp" />
     <ClCompile Include="..\src\main.cpp">
@@ -62,7 +63,8 @@
     <ClCompile Include="..\src\player.cpp" />
     <ClCompile Include="..\src\screen_battle.cpp" />
     <ClCompile Include="..\src\screen_dialog.cpp" />
-    <ClCompile Include="..\src\screen_map.cpp" />
+    <ClCompile Include="..\src\screen_briefing.cpp" />
+    <ClCompile Include="..\src\screen_briefing.h" />
     <ClCompile Include="..\src\sprites.cpp" />
     <ClCompile Include="..\src\game_control.cpp" />
     <ClCompile Include="..\src\screen_upgrade.cpp" />
@@ -81,6 +83,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Emulator|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\src\character.h" />
     <ClInclude Include="..\src\display_helper.h" />
     <ClInclude Include="..\src\keys.h" />
     <ClInclude Include="..\src\platform.h" />
@@ -91,7 +94,6 @@
     <ClInclude Include="..\src\screen_upgrade.h" />
     <ClInclude Include="..\src\sprites.h" />
     <ClInclude Include="..\src\game_control.h" />
-    <ClInclude Include="..\src\screen_map.h" />
     <ClInclude Include="..\src\utils.h" />
   </ItemGroup>
   <ItemGroup>

@@ -9,65 +9,6 @@
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
-#define HPBAR_SIZE 50
-
-battle_character::battle_character(int no)
-	: target_mode(0)
-{
-	switch (no)
-	{
-	case -1:
-		set_stat(sprite_flipp[0], 32, 32, 0, 20, 4, 0, 2, 1);
-		break;
-	case 0:
-		set_stat(sprite_enemy1, 23, 25, 0, 10, 2, 0, 1, 0);
-		break;
-	}
-	prev = -1;
-	next = -1;
-}
-
-void battle_character::set_stat(const color_t* image_, int width_, int height_, int mode_, int hp_, int attack_, int defense_, int speed_, int luck_)
-{
-	image = image_;
-	width = width_;
-	height = height_;
-	mode = mode_;
-	hp = mhp = hp_;
-	attack = attack_;
-	defense = defense_;
-	speed = speed_;
-	luck = luck_;
-	hpbar = HPBAR_SIZE;
-	hpbar_duration = 0;
-	death_animation = 0;
-	rotation = 0;
-}
-
-void border_helper(int x, int y, int dx, int dy, color_t color)
-{
-	color_t* VRAM = (color_t*)GetVRAMAddress();
-
-	for (int i = 0; i < 20; i++)
-	{
-		VRAM[y * LCD_WIDTH_PX + x] = color;
-		if (i < 5) x += dx;
-		else if (i < 7) y += dy;
-		else if (i < 10) x -= dx;
-		else if (i < 13) y += dy;
-		else if (i < 15) x -= dx;
-		else y -= dy;
-	}
-}
-
-void battle_character::draw_target_border(color_t color)
-{
-	border_helper(x - width / 2 - 3, y - height / 2 - 3, 1, 1, color);
-	border_helper(x + width - width / 2 + 2, y - height / 2 - 3, -1, 1, color);
-	border_helper(x - width / 2 - 3, y + height - height / 2 + 3, 1, -1, color);
-	border_helper(x + width - width / 2 + 2, y + height - height / 2 + 3, -1, -1, color);
-}
-
 screen_battle::screen_battle()
 {
 	for (int i = 0; i < 10; i++)
@@ -79,15 +20,25 @@ void screen_battle::load(int troop_no)
 	command_no = 0;
 
 	memset(bchs, 0, sizeof(bchs));
-	bchs[0] = battle_character(-1);
+	bchs[0] = character(-1);
 	bchs[0].x = 70;
 	bchs[0].y = 138;
 	switch (troop_no)
 	{
-	case 0:
-		bchs[1] = battle_character(0);
-		bchs[2] = battle_character(0);
-		bchs[3] = battle_character(0);
+	case 1:
+		bchs[1] = character(0);
+		bchs[2] = character(0);
+		break;
+	case 2:
+		bchs[1] = character(0);
+		bchs[2] = character(0);
+		bchs[3] = character(0);
+		break;
+	case 3:
+		int pos = ran() % 2;
+		bchs[1] = character(pos + 1);
+		bchs[2] = character(3);
+		bchs[3] = character(2 - pos);
 		break;
 	}
 	int c = 0;
@@ -162,7 +113,7 @@ void screen_battle::draw()
 
 	for (int i = 0; i < 10; i++)
 	{
-		battle_character& b = bchs[i];
+		character& b = bchs[i];
 		if (b.mhp >= 0 && (b.prev_x != b.x || b.prev_y != b.y || b.death_animation >= 20 || b.need_update))
 		{
 			int radius = MAX(b.height - b.height / 2, b.width - b.width / 2);
@@ -188,7 +139,7 @@ void screen_battle::draw()
 	}
 	for (int i = 0; i < 10; i++)
 	{
-		battle_character& b = bchs[i];
+		character& b = bchs[i];
 		if (b.mhp >= 0)
 		{
 			if (b.rotation)

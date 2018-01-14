@@ -13,6 +13,7 @@
 #include "fxcg\serial.h"
 
 #if TARGET_WINSIM
+#include <windows.h>
 #define LITTLE_E
 #else
 #define BIG_E
