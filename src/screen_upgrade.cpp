@@ -110,7 +110,7 @@ char buffer[60];
 void screen_upgrade::redraw()
 {
 	memset(buffer, 0, sizeof(buffer));
-	sprintf(buffer, "- Choose bonus: %d -", pl.rest);
+	sprintf(buffer, "- Choose bonus: %d -", player::pl->rest);
 	int s = 10;
 	int t = 10;
 	BdispH_AreaFill(s, 200, t, t+20, COLOR_WHITE);
@@ -155,9 +155,9 @@ void screen_upgrade::draw_desc()
 
 int screen_upgrade::routine()
 {
-	pl.rest++;
+	player::pl->rest++;
 
-	while (pl.rest)
+	while (player::pl->rest)
 	{
 		shuffle();
 		need_redraw = true;
@@ -179,22 +179,17 @@ int screen_upgrade::routine()
 
 			if (keys.action)
 			{
-				pl.upgrades[ups[selected_no].no]++;
-				pl.rest--;
+				player::pl->upgrades[ups[selected_no].no]++;
+				player::pl->rest--;
 				break;
 			}
 		}
 	}
 	DmaWaitNext();
-	MsgBoxPush(4);
-	PrintCXY(80, 42, "Next stage", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
-	PrintCXY(84, 90, "Press [EXIT]", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	int key;
 	do
 	{
 		GetKey(&key);
-	} while (key != KEY_CTRL_EXIT);
-	MsgBoxPop();
-	gc.prev_time = RTC_GetTicks();
-	return 2;
+	} while (key != KEY_CTRL_EXE);
+	return 1;
 }

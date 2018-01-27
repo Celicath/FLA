@@ -16,6 +16,8 @@ public:
 	int width;
 	int height;
 	int mode;
+
+	int level;
 	int hp;
 	int mhp;
 	int attack;
@@ -36,7 +38,9 @@ public:
 	character() : target_mode(0) { };
 	character(int no);
 	void draw_target_border(color_t color);
+	void set_image(const color_t* image_);
+
+	static character bchs[10];
 private:
 	void set_stat(const color_t* image_, int width_, int height_, int mode_, int hp_, int attack_, int defense_, int speed_);
 };
-

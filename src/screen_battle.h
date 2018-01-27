@@ -18,7 +18,6 @@ private:
 	int state;
 	int target_timer;
 
-	character bchs[10];	// 0=flipp, 1~9=enemies
 	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
 
 	void draw_icons(bool draw_icons);

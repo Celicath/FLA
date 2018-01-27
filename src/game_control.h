@@ -13,7 +13,7 @@ public:
 	void start();
 	void redraw();
 	void pause();
-	void update();
+	void update(bool always_draw = false);
 	void draw();
 	void set_active_screen(screen* screen);
 

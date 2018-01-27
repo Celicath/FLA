@@ -84,17 +84,22 @@ void game_control::start()
 	clock = 0;
 	last_draw = 0;
 
-	for (int level = 1; level <= 20; )
+	for (int level = 0; level <= 20; level++)
 	{
-		((screen_battle*)screens[2])->load(level);
+		screens[2]->load(level);
 		redraw();
-		next_screen = screens[next_screen]->routine();
-		update();
-		if (next_screen != -1)
+		for (;;)
 		{
-			active_screen = screens[next_screen];
-			if (next_screen == 2)
-				level++;
+			next_screen = screens[next_screen]->routine();
+			gc.prev_time = RTC_GetTicks();
+			update();
+			if (next_screen != -1)
+			{
+				active_screen = screens[next_screen];
+				if (next_screen == 2)
+					break;
+			}
+			Bdisp_AllClr_VRAM();
 		}
 	}
 	int key;
@@ -103,7 +108,7 @@ void game_control::start()
 }
 
 int lag = 0;
-void game_control::update()
+void game_control::update(bool always_draw)
 {
 	for (;;)
 	{
@@ -126,6 +131,7 @@ void game_control::update()
 				fps += (now - prev_time) / 2;
 				prev_time = now;
 			}
+			if (always_draw) prev_time = now;
 			if (now <= prev_time + 1)
 			{
 				last_draw = 0;
@@ -136,7 +142,7 @@ void game_control::update()
 		else if (now < prev_time)
 			prev_time = now;
 #if TARGET_WINSIM
-		Sleep(15);
+		Sleep(10);
 #else
 		CMT_Delay_micros(100);
 #endif

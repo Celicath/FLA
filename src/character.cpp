@@ -1,14 +1,14 @@
 #include "character.h"
 #include "sprites.h"
+#include "player.h"
+
+character character::bchs[10];
 
 character::character(int no)
 	: target_mode(0)
 {
 	switch (no)
 	{
-	case -1:
-		set_stat(sprite_flipp[0], 32, 32, 0, 20, 4, 0, 2);
-		break;
 	case 0:
 		set_stat(sprite_enemy1, 23, 25, 0, 10, 2, 0, 1);
 		break;
@@ -64,4 +64,10 @@ void character::draw_target_border(color_t color)
 	border_helper(x + width - width / 2 + 2, y - height / 2 - 3, -1, 1, color);
 	border_helper(x - width / 2 - 3, y + height - height / 2 + 3, 1, -1, color);
 	border_helper(x + width - width / 2 + 2, y + height - height / 2 + 3, -1, -1, color);
+}
+
+void character::set_image(const color_t* image_)
+{
+	image = image_;
+	need_update = true;
 }
