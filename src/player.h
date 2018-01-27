@@ -14,5 +14,5 @@ public:
 
 	void set_character(character& ch);
 
-	static player* pl;
+	static player pl;
 };

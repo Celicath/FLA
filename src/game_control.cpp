@@ -172,5 +172,5 @@ void game_control::draw()
 	}
 
 	DmaWaitNext();
-	ShowDisplay();
+	DoDMAlcdNonblockStrip(0, 215);
 }

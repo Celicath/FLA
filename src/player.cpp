@@ -1,6 +1,8 @@
 #include "player.h"
 #include "screen_battle.h"
 
+player player::pl;
+
 player::player()
 {
 	memset(upgrades, 0, sizeof(upgrades));
@@ -15,5 +17,3 @@ void player::set_character(character& ch)
 	ch.defense = 0 + upgrades[1];
 	ch.speed = 2 + upgrades[2];
 }
-
-player* player::pl = new player();

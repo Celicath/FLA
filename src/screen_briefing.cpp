@@ -37,6 +37,7 @@ void screen_briefing::draw()
 void screen_briefing::redraw()
 {
 	char buffer[20];
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "Wave %d", level);
 	int x = 15;
 	int y = 10;
@@ -52,9 +53,10 @@ void screen_briefing::redraw()
 		PrintMiniMini(&x, &y, "- Shloom", 0x50, TEXT_COLOR_BLACK, 0);
 	}
 
-	const int charstatx = 300;
+	const int charstatx = 260;
 	x = charstatx;
 	y = 10;
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "Flipp Lv.%d", character::bchs[0].level);
 	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
@@ -66,6 +68,7 @@ void screen_briefing::redraw()
 			i == 0 ? "HP" : i == 1 ? "Atk" : i == 2 ? "Def" : "Spd",
 			0x50, TEXT_COLOR_BLACK, 0);
 		x = 0;
+		memset(buffer, 0, sizeof(buffer));
 		sprintf(buffer, "%d",
 			i == 0 ? character::bchs[0].mhp :
 			i == 1 ? character::bchs[0].attack :
@@ -80,11 +83,9 @@ void screen_briefing::redraw()
 int screen_briefing::routine()
 {
 	gc.update(true);
-	player::pl->set_character(character::bchs[0]);
+	player::pl.set_character(character::bchs[0]);
 
-	Bdisp_AllClr_VRAM();
-	redraw();
-
+	DmaWaitNext();
 	int key;
 	do
 	{

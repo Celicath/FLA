@@ -14,6 +14,12 @@ screen_battle::screen_battle()
 {
 	for (int i = 0; i < 10; i++)
 		effects[i][0] = 0;
+
+	memset(character::bchs, 0, sizeof(character::bchs));
+
+	character::bchs[0].set_image(sprite_flipp[0]);
+	character::bchs[0].width = 32;
+	character::bchs[0].height = 32;
 }
 
 void screen_battle::load(int troop_no)
@@ -21,12 +27,7 @@ void screen_battle::load(int troop_no)
 	command_no = 0;
 	target_no = 0;
 
-	memset(character::bchs, 0, sizeof(character::bchs));
-
-	character::bchs[0].set_image(sprite_flipp[0]);
-	player::pl->set_character(character::bchs[0]);
-	character::bchs[0].width = 32;
-	character::bchs[0].height = 32;
+	player::pl.set_character(character::bchs[0]);
 	character::bchs[0].hp = character::bchs[0].mhp;
 	character::bchs[0].x = 70;
 	character::bchs[0].y = 138;
@@ -440,6 +441,7 @@ void screen_battle::attack_jump(int target)
 
 		for (int f = 0; f < 40 + range / 2; f++)
 		{
+			gc.update();
 			if (f <= 40)
 			{
 				character::bchs[0].x = (px * (40 - f) + nx * f) / 40;
@@ -453,7 +455,6 @@ void screen_battle::attack_jump(int target)
 					action_command = (f < 20 ? 0 : -1);
 				else action_command = 1;
 			}
-			gc.update();
 		}
 		px = nx;
 		py = ny;
@@ -510,6 +511,7 @@ void screen_battle::attack_dive(int target)
 	int jump_frames = (character::bchs[target].x - px - 1) / 6;
 	for (int f = 0; f < jump_frames + range / 2; f++)
 	{
+		gc.update();
 		if (f <= jump_frames)
 		{
 			character::bchs[0].x = (px * (jump_frames - f) + nx * f) / jump_frames;
@@ -523,7 +525,6 @@ void screen_battle::attack_dive(int target)
 				action_command = (f < jump_frames - 20 ? 0 : -1);
 			else action_command = 1;
 		}
-		gc.update();
 	}
 	px = nx;
 	py = ny;

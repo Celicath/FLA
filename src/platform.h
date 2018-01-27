@@ -73,14 +73,16 @@ inline void DoDMAlcdNonblockStrip(unsigned y1, unsigned y2) {
 	*DMA0_CHCR_0 |= 1;//Enable channel0 DMA
 }
 #else
-inline void DmaWaitNext(void) { }
-#endif
-
-inline void ShowDisplay()
+extern bool dma_transfer;
+inline void DmaWaitNext(void)
 {
-#if TARGET_WINSIM
-	Bdisp_PutDisp_DD();
-#else
-	DoDMAlcdNonblockStrip(0, 215);
-#endif
+	dma_transfer = false;
 }
+inline void DoDMAlcdNonblockStrip(unsigned y1, unsigned y2)
+{
+	if (dma_transfer)
+		printf("Warning: You should call DmaWaitNext() before another DoDMAlcdNonblockStrip().");
+	dma_transfer = true;
+	Bdisp_PutDisp_DD();
+}
+#endif

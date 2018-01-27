@@ -110,7 +110,7 @@ char buffer[60];
 void screen_upgrade::redraw()
 {
 	memset(buffer, 0, sizeof(buffer));
-	sprintf(buffer, "- Choose bonus: %d -", player::pl->rest);
+	sprintf(buffer, "- Choose bonus: %d -", player::pl.rest);
 	int s = 10;
 	int t = 10;
 	BdispH_AreaFill(s, 200, t, t+20, COLOR_WHITE);
@@ -155,9 +155,9 @@ void screen_upgrade::draw_desc()
 
 int screen_upgrade::routine()
 {
-	player::pl->rest++;
+	player::pl.rest++;
 
-	while (player::pl->rest)
+	while (player::pl.rest)
 	{
 		shuffle();
 		need_redraw = true;
@@ -179,8 +179,9 @@ int screen_upgrade::routine()
 
 			if (keys.action)
 			{
-				player::pl->upgrades[ups[selected_no].no]++;
-				player::pl->rest--;
+				player::pl.upgrades[ups[selected_no].no]++;
+				player::pl.rest--;
+				player::pl.set_character(character::bchs[0]);
 				break;
 			}
 		}
