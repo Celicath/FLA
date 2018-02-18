@@ -103,7 +103,7 @@
     <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>flipp-castle-defense</ProjectName>
+    <ProjectName>FLA</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'" Label="Configuration">

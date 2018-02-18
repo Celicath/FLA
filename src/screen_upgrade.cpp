@@ -20,29 +20,24 @@ const char upgrade_name[][16] =
 	"Level UP (Spd)",
 	"Fireball",
 	"Frostbolt",
-	"Strong Wind",
-	"Ground Trap"
+	"Blast",
+	"Earth Trap"
 };
 
-/* 5th digit: 0=passive 1=card
-   1st digit: 0=normal 1=fire 2=ice 3=wind 4=earth */
+/* 0=passive 1=normal 2=fire 3=ice 4=wind 5=earth */
 const int upgrade_type[] =
 {
-	0, 0, 0, 6, 7, 8, 9
+	0, 0, 0, 1, 2, 3, 4
 };
 
 const char type_name[][16] =
 {
 	"Passive",
-	"Passive, Fire",
-	"Passive, Ice",
-	"Passive, Wind",
-	"Passive, Earth",
-	"Card",
-	"Card, Fire",
-	"Card, Ice",
-	"Card, Wind",
-	"Card, Earth",
+	"Spell",
+	"Spell(Fire)",
+	"Spell(Ice)",
+	"Spell(Wind)",
+	"Spell(Earth)",
 };
 
 const color_t type_colors[] = { COLOR_WHITE, 0xFE18, 0xE71F, 0xC7F8, 0xFFF0 };
@@ -71,6 +66,8 @@ void upgrade::draw(int x, int y)
 	int s = x + 2;
 	int t = y + 2;
 	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+
+	player::pl.show_stats();
 }
 
 screen_upgrade::screen_upgrade()

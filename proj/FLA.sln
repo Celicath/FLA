@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flipp-castle-defense", "flipp-castle-defense.vcxproj", "{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FLA", "FLA.vcxproj", "{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
