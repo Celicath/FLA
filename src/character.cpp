@@ -1,6 +1,7 @@
 #include "character.h"
 #include "sprites.h"
 #include "player.h"
+#include "display_helper.h"
 
 character character::bchs[10];
 
@@ -42,28 +43,9 @@ void character::set_stat(const color_t* image_, int width_, int height_, int mod
 	rotation = 0;
 }
 
-void border_helper(int x, int y, int dx, int dy, color_t color)
-{
-	color_t* VRAM = (color_t*)GetVRAMAddress();
-
-	for (int i = 0; i < 20; i++)
-	{
-		VRAM[y * LCD_WIDTH_PX + x] = color;
-		if (i < 5) x += dx;
-		else if (i < 7) y += dy;
-		else if (i < 10) x -= dx;
-		else if (i < 13) y += dy;
-		else if (i < 15) x -= dx;
-		else y -= dy;
-	}
-}
-
 void character::draw_target_border(color_t color)
 {
-	border_helper(x - width / 2 - 3, y - height / 2 - 3, 1, 1, color);
-	border_helper(x + width - width / 2 + 2, y - height / 2 - 3, -1, 1, color);
-	border_helper(x - width / 2 - 3, y + height - height / 2 + 3, 1, -1, color);
-	border_helper(x + width - width / 2 + 2, y + height - height / 2 + 3, -1, -1, color);
+	::draw_target_border(x, y, width, height, color);
 }
 
 void character::set_image(const color_t* image_)

@@ -156,19 +156,10 @@ void game_control::draw()
 	fps_count[0]++;
 	if (fps >= 32)
 	{
+		draw_small_num(1, 376, 1, fps_count[0] + fps_count[1], 2);
 		fps -= 32;
-		char buffer[20];
-		memset(buffer, 0, sizeof(buffer));
-		sprintf(buffer, "FPS=%d", fps_count[0] + fps_count[1]);
 		fps_count[1] = fps_count[0];
 		fps_count[0] = 0;
-		int x = 0;
-		int y = 0;
-		PrintMiniMini(&x, &y, buffer, 0x50, TEXT_COLOR_BLACK, 1);
-		x = 382 - x;
-		y = 1;
-		BdispH_AreaFill(x, 383, 0, 23, COLOR_WHITE);
-		PrintMiniMini(&x, &y, buffer, 0x50, TEXT_COLOR_BLACK, 0);
 	}
 
 	DmaWaitNext();

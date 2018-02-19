@@ -31,5 +31,6 @@ private:
 	bool need_redraw;
 
 	int rest;
+	int num_options;
 	upgrade ups[10];
 };

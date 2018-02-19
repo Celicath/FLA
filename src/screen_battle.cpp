@@ -237,10 +237,7 @@ const char command_text[][8] =
 {
 	"Jump",
 	"Dive",
-	"",
-	"",
-	"Cards",
-	"Status"
+	"Defend",
 };
 
 void screen_battle::redraw()
@@ -257,7 +254,7 @@ int screen_battle::routine()
 		switch (state)
 		{
 		case 0:
-			if (keys.right && command_no < 5)
+			if (keys.right && command_no < 2)
 			{
 				command_no++;
 			}
@@ -265,21 +262,10 @@ int screen_battle::routine()
 			{
 				command_no--;
 			}
-			
 			if (keys.action)
 			{
 				find_target(command_no);
 				state = 1;
-			}
-			else
-			{
-				for (int i = 0; i < 6; i++)
-					if (keys.f_key[i])
-					{
-						command_no = i;
-						find_target(command_no);
-						state = 1;
-					}
 			}
 			break;
 		case 1:
@@ -305,7 +291,7 @@ int screen_battle::routine()
 			}
 			character::bchs[target_no].target_mode = 1;
 
-			if (keys.action || keys.f_key[command_no])
+			if (keys.action)
 			{
 				state = 2;
 				if (command_no == 0)
@@ -320,16 +306,6 @@ int screen_battle::routine()
 			{
 				state = 0;
 				character::bchs[target_no].target_mode = -1;
-			}
-			else
-			{
-				for (int i = 0; i < 6; i++)
-					if (keys.f_key[i])
-					{
-						character::bchs[target_no].target_mode = -1;
-						command_no = i;
-						find_target(command_no);
-					}
 			}
 			break;
 		case 3:
@@ -449,7 +425,7 @@ void screen_battle::attack_jump(int target)
 			}
 			else if (action_command != 0) break;
 
-			if ((keys.action || keys.f_key[command_no]) && action_command >= 0)
+			if ((keys.action) && action_command >= 0)
 			{
 				if (f < 40 - (range + 1) / 2)
 					action_command = (f < 20 ? 0 : -1);
@@ -519,7 +495,7 @@ void screen_battle::attack_dive(int target)
 		}
 		else if (action_command != 0) break;
 
-		if ((keys.action || keys.f_key[command_no]) && action_command >= 0)
+		if ((keys.action) && action_command >= 0)
 		{
 			if (f < jump_frames + 4 - (range + 1) / 2)
 				action_command = (f < jump_frames - 20 ? 0 : -1);
@@ -616,38 +592,28 @@ void screen_battle::draw_icons(bool always_draw)
 	BdispH_AreaFill(0, 383, 155, 215, COLOR_WHITE);
 
 	int istart = 0;
-	int iend = 5;
+	int iend = 2;
 	if (state == 1) istart = iend = command_no;
 	else if (state >= 2) iend = -1;
 	for (int i = istart; i <= iend; i++)
 	{
-		BdispH_AreaFill(64 * i + 2, 64 * i + 60, 173, 173, COLOR_BLACK);
-		BdispH_AreaFill(64 * i + 1, 64 * i + 1, 173, 214, COLOR_BLACK);
-
-		BdispH_AreaFill(64 * i + 3, 64 * i + 3, 175, 179, COLOR_BLACK);
-		BdispH_AreaFill(64 * i + 4, 64 * i + 5, 175, 175, COLOR_BLACK);
-		BdispH_AreaFill(64 * i + 4, 64 * i + 5, 177, 177, COLOR_BLACK);
-		Draw_SmallNum(1, 64 * i + 7 - !i, 175, i + 1, 1);
-
-		CopySprite(sprite_command[i], 64 * i + 32, 195, 40, 40);
+		int sx = 40 * i + 32;
+		CopySprite(sprite_command[i], sx, 195, 32, 32);
 
 		if (command_no == i)
 		{
 			if (state == 0)
 			{
-				BdispH_AreaFill(64 * i + 2, 64 * i + 59, 172, 172, COLOR_BLACK);
-				BdispH_AreaFill(64 * i + 2, 64 * i + 59, 214, 215, COLOR_BLACK);
-				BdispH_AreaFill(64 * i + 0, 64 * i + 0, 174, 213, COLOR_BLACK);
-				BdispH_AreaFill(64 * i + 60, 64 * i + 61, 174, 213, COLOR_BLACK);
+				draw_target_border(sx, 195, 34, 34, COLOR_BLACK);
 			}
 			else if (state == 1)
-				BdispH_AreaReverse(64 * i + 1, 64 * i + 60, 173, 214);
+				BdispH_AreaReverse(sx - 15, sx + 14, 180, 209);
 
 			int x = 0;
 			int y = 0;
 			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
-			x = 64 * i + 32 - x / 2;
-			y = 155;
+			x = sx - x / 2;
+			y = 158;
 			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 		}
 	}
@@ -767,7 +733,7 @@ void screen_battle::enemy_attack(int attacker)
 			}
 			else if (action_command != 0) break;
 
-			if ((keys.action || keys.f_key[command_no]) && action_command >= 0)
+			if ((keys.action) && action_command >= 0)
 			{
 				if (f < 40 - (range + 1) / 2)
 					action_command = (f < 20 ? 0 : -1);

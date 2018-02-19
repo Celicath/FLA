@@ -1,6 +1,6 @@
 #include "display_helper.h"
 
-void Draw_SmallNum(int size, int x, int y, int num, int space, color_t fill_color, color_t back_color)
+void draw_small_num(int size, int x, int y, int num, int space, color_t fill_color, color_t back_color)
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 	int temp[20];
@@ -58,4 +58,28 @@ void Draw_SmallNum(int size, int x, int y, int num, int space, color_t fill_colo
 			}
 		pos += 4 * size;
 	}
+}
+
+void border_helper(int x, int y, int dx, int dy, color_t color)
+{
+	color_t* VRAM = (color_t*)GetVRAMAddress();
+
+	for (int i = 0; i < 20; i++)
+	{
+		VRAM[y * LCD_WIDTH_PX + x] = color;
+		if (i < 5) x += dx;
+		else if (i < 7) y += dy;
+		else if (i < 10) x -= dx;
+		else if (i < 13) y += dy;
+		else if (i < 15) x -= dx;
+		else y -= dy;
+	}
+}
+
+void draw_target_border(int x, int y, int width, int height, color_t color)
+{
+	border_helper(x - width / 2 - 3, y - height / 2 - 3, 1, 1, color);
+	border_helper(x + width - width / 2 + 2, y - height / 2 - 3, -1, 1, color);
+	border_helper(x - width / 2 - 3, y + height - height / 2 + 2, 1, -1, color);
+	border_helper(x + width - width / 2 + 2, y + height - height / 2 + 2, -1, -1, color);
 }

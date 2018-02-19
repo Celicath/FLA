@@ -37,4 +37,5 @@ inline void BdispH_SetPoint(int x, int y, unsigned short color)
 	*(VRAM + LCD_WIDTH_PX*y + x) = color;
 }
 
-void Draw_SmallNum(int size, int x, int y, int num, int space, color_t fill_color = COLOR_BLACK, color_t back_color = COLOR_WHITE);
+void draw_small_num(int size, int x, int y, int num, int space, color_t fill_color = COLOR_BLACK, color_t back_color = COLOR_WHITE);
+void draw_target_border(int x, int y, int width, int height, color_t color);

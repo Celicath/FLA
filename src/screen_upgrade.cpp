@@ -20,8 +20,8 @@ const char upgrade_name[][16] =
 	"Level UP (Spd)",
 	"Fireball",
 	"Frostbolt",
-	"Blast",
-	"Earth Trap"
+	"Wind Blast",
+	"Earthquake"
 };
 
 /* 0=passive 1=normal 2=fire 3=ice 4=wind 5=earth */
@@ -47,36 +47,18 @@ upgrade::upgrade(int no_) : no(no_), selected(false) { }
 
 void upgrade::draw(int x, int y)
 {
-	const char* name = upgrade_name[no];
-	int type = upgrade_type[no] % 5;
-
-	int width = 200;
-	int height = 20;
-
+	CopySprite(sprite_icons[no], x, y, 32, 32);
 	if (selected)
-	{
-		BdispH_AreaFill(x - 2, x + width + 2, y - 2, y + height + 2, COLOR_BLACK);
-		BdispH_AreaFill(x - 1, x + width + 1, y - 1, y + height + 1, COLOR_WHITE);
-	}
-	else BdispH_AreaFill(x - 2, x + width + 2, y - 2, y + height + 2, COLOR_WHITE);
-
-	BdispH_AreaFill(x, x + width, y, y + height, COLOR_BLACK);
-	BdispH_AreaFill(x + 1, x + width - 1, y + 1, y + height - 1, type_colors[type]);
-
-	int s = x + 2;
-	int t = y + 2;
-	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
-
-	player::pl.show_stats();
+		draw_target_border(x, y, 32, 32, COLOR_BLACK);
 }
 
-screen_upgrade::screen_upgrade()
+screen_upgrade::screen_upgrade() : num_options(4)
 {
 }
 
 void screen_upgrade::shuffle()
 {
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < num_options; i++)
 	{
 		ups[i] = upgrade(ran() % 7);
 		for (int j = 0; j < i; j++)
@@ -98,23 +80,24 @@ void screen_upgrade::draw()
 	{
 		need_redraw = false;
 		redraw();
+		player::pl.show_stats();
 	}
 }
-
 
 char buffer[60];
 
 void screen_upgrade::redraw()
 {
+	BdispH_AreaFill(0, 250, 0, 215, COLOR_WHITE);
 	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "- Choose bonus: %d -", player::pl.rest);
 	int s = 10;
 	int t = 10;
-	BdispH_AreaFill(s, 200, t, t+20, COLOR_WHITE);
 	PrintMini(&s, &t, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
-	for (int i = 0; i < 4; i++)
-		ups[i].draw(20, 38 + 30 * i);
+	int gap = 160 / (num_options - 1);
+	for (int i = 0; i < num_options; i++)
+		ups[i].draw(gap * i + 48, 72);
 
 	draw_desc();
 }
@@ -125,13 +108,12 @@ void screen_upgrade::draw_desc()
 	const char* name = upgrade_name[no];
 
 	int s = 10;
-	int t = 160;
-	BdispH_AreaFill(s, 383, t, 215, COLOR_WHITE);
+	int t = 140;
 
 	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
 	s = 15;
-	t = 183;
+	t = 163;
 	PrintMiniMini(&s, &t, type_name[upgrade_type[no]], 0x50, TEXT_COLOR_BLACK, 0);
 
 	memset(buffer, 0, sizeof(buffer));
@@ -144,9 +126,9 @@ void screen_upgrade::draw_desc()
 	else if (no == 5)
 		sprintf(buffer, "3 damage + knockback to all enemies.");
 	else if (no == 6)
-		sprintf(buffer, "Sets up a 6 damage trap. 2x damage to stacked enemies.");
+		sprintf(buffer, "4 damage to Area(large).");
 	s = 15;
-	t = 196;
+	t = 176;
 	PrintMiniMini(&s, &t, buffer, 0x40, TEXT_COLOR_BLACK, 0);
 }
 
@@ -159,17 +141,17 @@ int screen_upgrade::routine()
 		shuffle();
 		need_redraw = true;
 		selected_no = 0;
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < num_options; i++)
 			ups[i].selected = (i == 0);
 
 		for (;;)
 		{
 			gc.update();
-			int diff = keys.down - keys.up;
+			int diff = keys.right - keys.left;
 			if (diff)
 			{
 				ups[selected_no].selected = false;
-				selected_no = (selected_no + diff + 4) % 4;
+				selected_no = (selected_no + diff + num_options) % num_options;
 				ups[selected_no].selected = true;
 				need_redraw = true;
 			}
