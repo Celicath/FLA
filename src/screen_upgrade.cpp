@@ -27,7 +27,7 @@ const char upgrade_name[][16] =
 /* 0=passive 1=normal 2=fire 3=ice 4=wind 5=earth */
 const int upgrade_type[] =
 {
-	0, 0, 0, 1, 2, 3, 4
+	0, 0, 0, 2, 3, 4, 5
 };
 
 const char type_name[][16] =
@@ -88,16 +88,17 @@ char buffer[60];
 
 void screen_upgrade::redraw()
 {
-	BdispH_AreaFill(0, 250, 0, 215, COLOR_WHITE);
+	BdispH_AreaFill(0, LCD_WIDTH_PX - 1, 16, LCD_HEIGHT_PX - 1, COLOR_WHITE);
 	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "- Choose bonus: %d -", player::pl.rest);
-	int s = 10;
-	int t = 10;
+	int s = 0;
+	int t = 40;
+	PrintMini(&s, &t, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
+	s = 191 - s / 2;
 	PrintMini(&s, &t, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
-	int gap = 160 / (num_options - 1);
 	for (int i = 0; i < num_options; i++)
-		ups[i].draw(gap * i + 48, 72);
+		ups[i].draw(191 - 24 * (num_options - 1) + 48 * i, 90);
 
 	draw_desc();
 }
@@ -107,13 +108,13 @@ void screen_upgrade::draw_desc()
 	int no = ups[selected_no].no;
 	const char* name = upgrade_name[no];
 
-	int s = 10;
-	int t = 140;
+	int s = 20;
+	int t = 135;
 
 	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
-	s = 15;
-	t = 163;
+	s = 26;
+	t = 160;
 	PrintMiniMini(&s, &t, type_name[upgrade_type[no]], 0x50, TEXT_COLOR_BLACK, 0);
 
 	memset(buffer, 0, sizeof(buffer));
@@ -127,8 +128,8 @@ void screen_upgrade::draw_desc()
 		sprintf(buffer, "3 damage + knockback to all enemies.");
 	else if (no == 6)
 		sprintf(buffer, "4 damage to Area(large).");
-	s = 15;
-	t = 176;
+	s = 26;
+	t = 175;
 	PrintMiniMini(&s, &t, buffer, 0x40, TEXT_COLOR_BLACK, 0);
 }
 
