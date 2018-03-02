@@ -9,7 +9,6 @@
 #include "utils.h"
 
 #include "screen_battle.h"
-#include "screen_briefing.h"
 #include "screen_upgrade.h"
 #include "screen_dialog.h"
 
@@ -68,10 +67,9 @@ void game_control::start()
 	for (int i = 0; i < 10; i++)
 		screens[i] = nullptr;
 	screens[0] = new screen_upgrade;
-	screens[1] = new screen_briefing;
-	screens[2] = new screen_battle;
-	screens[3] = new screen_dialog;
-	int next_screen = 2;
+	screens[1] = new screen_battle;
+	screens[2] = new screen_dialog;
+	int next_screen = 1;
 	active_screen = screens[next_screen];
 
 	Bdisp_EnableColor(1);
@@ -84,9 +82,9 @@ void game_control::start()
 	clock = 0;
 	last_draw = 0;
 
-	for (int level = 0; level <= 20; level++)
+	for (int level = 1; level <= 20; level++)
 	{
-		screens[2]->load(level);
+		screens[1]->load(level);
 		redraw();
 		for (;;)
 		{
@@ -96,7 +94,7 @@ void game_control::start()
 			if (next_screen != -1)
 			{
 				active_screen = screens[next_screen];
-				if (next_screen == 2)
+				if (next_screen == 1)
 					break;
 			}
 			Bdisp_AllClr_VRAM();
@@ -113,6 +111,7 @@ void game_control::update(bool always_draw)
 	for (;;)
 	{
 		int now = RTC_GetTicks();
+
 		if (now >= prev_time + 2)
 		{
 			updateKeys();
@@ -131,8 +130,7 @@ void game_control::update(bool always_draw)
 				fps += (now - prev_time) / 2;
 				prev_time = now;
 			}
-			if (always_draw) prev_time = now;
-			if (now <= prev_time + 1)
+			if (always_draw || now <= prev_time + 7)
 			{
 				last_draw = 0;
 				draw();
@@ -141,26 +139,32 @@ void game_control::update(bool always_draw)
 		}
 		else if (now < prev_time)
 			prev_time = now;
+
+		if (now <= prev_time)
+		{
 #if TARGET_WINSIM
-		Sleep(10);
+			Sleep(5);
 #else
-		CMT_Delay_micros(100);
+			CMT_Delay_micros(100);
 #endif
+		}
 	}
 }
 
 void game_control::draw()
 {
+	static int f = 0;
 	active_screen->draw();
 
 	fps_count[0]++;
 	if (fps >= 32)
 	{
-		draw_small_num(1, 376, 1, fps_count[0] + fps_count[1], 2);
+		f = fps_count[0] + fps_count[1];
 		fps -= 32;
 		fps_count[1] = fps_count[0];
 		fps_count[0] = 0;
 	}
+	draw_small_num(1, 376, 1, f, 2);
 
 	DmaWaitNext();
 	DoDMAlcdNonblockStrip(0, 215);

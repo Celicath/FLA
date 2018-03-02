@@ -2,12 +2,13 @@
 
 #include "screen.h"
 
-#define HPBAR_SIZE 50
+#define HPBAR_INTERVALS 50
 
 class character
 {
 public:
 	const color_t* image;
+	int no;
 	int x;
 	int y;
 	int prev_x;
@@ -31,16 +32,17 @@ public:
 	int hpbar;
 	int hpbar_duration;
 	int death_animation;
-
-	int wait_gauge;
 	int rotation;
+
+	int target_pos;
 
 	character() : target_mode(0) { };
 	character(int no);
-	void draw_target_border(color_t color);
+	void draw_target_border(color_t color, bool draw_name = true);
 	void set_image(const color_t* image_);
+	const char* get_name() const;
 
 	static character bchs[10];
 private:
-	void set_stat(const color_t* image_, int width_, int height_, int mode_, int hp_, int attack_, int defense_, int speed_);
+	void set_stat(const color_t* image_, int no_, int width_, int height_, int mode_, int hp_, int attack_, int defense_, int speed_);
 };

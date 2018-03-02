@@ -2,14 +2,15 @@
 
 #include "screen.h"
 
-class screen_briefing : public screen {
+class screen_test : public screen {
 public:
-	screen_briefing();
+	screen_test();
 	virtual void load(int level) override;
 	virtual void update() override;
 	virtual void draw() override;
 	virtual void redraw() override;
 	virtual int routine() override;
 private:
+	int state;
 	int level;
 };

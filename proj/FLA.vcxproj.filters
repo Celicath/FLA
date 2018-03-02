@@ -66,11 +66,11 @@
     <ClCompile Include="..\src\character.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\screen_briefing.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\screen_briefing.cpp">
+    <ClCompile Include="..\src\screen_test.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\screen_test.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="..\src\character.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\prizm-winsim\prizmfont.h">
+      <Filter>prizm-winsim</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

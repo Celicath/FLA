@@ -28,9 +28,8 @@ void screen_battle::load(int troop_no)
 	target_no = 0;
 
 	player::pl.set_character(character::bchs[0]);
-	character::bchs[0].hp = character::bchs[0].mhp;
 	character::bchs[0].x = 70;
-	character::bchs[0].y = 138;
+	character::bchs[0].y = 128;
 	switch (troop_no)
 	{
 	case 1:
@@ -55,14 +54,12 @@ void screen_battle::load(int troop_no)
 		if (character::bchs[c].mhp > 0)
 		{
 			character::bchs[c].x = 225 + 40 * c;
-			character::bchs[c].y = 140;
+			character::bchs[c].y = 130;
 			character::bchs[c].prev = c - 1;
 			character::bchs[c - 1].next = c;
 		}
 		else break;
 	}
-	for (int i = 1; i < c; i++)
-		character::bchs[i].wait_gauge = 1024 * (c - i - 1) / (c - 1);
 }
 
 void screen_battle::update()
@@ -76,7 +73,7 @@ void screen_battle::update()
 	for (int i = 0; i < 10; i++)
 		if (character::bchs[i].mhp > 0)
 		{
-			int k = character::bchs[i].hp * HPBAR_SIZE / character::bchs[i].mhp;
+			int k = character::bchs[i].hp * HPBAR_INTERVALS / character::bchs[i].mhp;
 			if (k != character::bchs[i].hpbar)
 			{
 				character::bchs[i].hpbar += (character::bchs[i].hpbar < k ? 1 : -1);
@@ -100,10 +97,31 @@ const char messages[][12] = {
 	"NICE",
 	"GREAT",
 	"EXCELLENT",
-	"EARLY",
-	"LATE",
-	"COUNTER"
+	"BLOCK",
+	"EVADE"
 };
+
+void draw_effect(int effect[], bool draw_mode)
+{
+	if (draw_mode)
+	{
+		char buffer[20];
+		memset(buffer, 0, sizeof(buffer));
+		if (effect[0] > 0)
+			sprintf(buffer, "%d", effect[0]);
+		else sprintf(buffer, messages[-effect[0] - 1], effect[0]);
+		int x = effect[1] - strlen(buffer) * 5;
+		int y = effect[2] - 20 + (effect[3] * effect[3]) / 100;
+		PrintMiniMini(&x, &y, buffer, 0x52, effect[0] > 0 ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
+		effect[4] = effect[3];
+	}
+	else
+	{
+		int x = effect[1];
+		int y = effect[2] - 20 + (effect[4] * effect[4]) / 100;
+		BdispH_AreaFill(x - 72, x + 64, y, y + 12, COLOR_WHITE);
+	}
+}
 
 void screen_battle::draw()
 {
@@ -114,9 +132,7 @@ void screen_battle::draw()
 	for (int i = 0; i < 10; i++)
 		if (effects[i][0])
 		{
-			int x = effects[i][1];
-			int y = effects[i][2] - 15 + (effects[i][4] * effects[i][4]) / 60;
-			BdispH_AreaFill(x - 72, x + 64, y, y + 18, COLOR_WHITE);
+			draw_effect(effects[i], false);
 		}
 
 	for (int i = 0; i < 10; i++)
@@ -133,7 +149,8 @@ void screen_battle::draw()
 				}
 			}
 			b.need_update = false;
-			BdispH_AreaFill(b.prev_x - 13, b.prev_x + 13, b.prev_y + b.height / 2 + 2, b.prev_y + b.height / 2 + 5, COLOR_WHITE);
+			BdispH_AreaFill(b.prev_x - 13, b.prev_x + 13, b.prev_y + b.height / 2 + 5, b.prev_y + b.height / 2 + 10, COLOR_WHITE);
+			BdispH_AreaFill(b.prev_x + 7, b.prev_x + 13, b.prev_y + b.height / 2 + 11, b.prev_y + b.height / 2 + 15, COLOR_WHITE);
 		}
 	}
 	color_t c = COLOR_BLACK;
@@ -174,38 +191,43 @@ void screen_battle::draw()
 			}
 
 			if (b.target_mode == 1)
-				b.draw_target_border(c);
+				b.draw_target_border(c, state != 3);
 			else if (b.target_mode == -1)
 			{
-				b.draw_target_border(COLOR_WHITE);
+				b.draw_target_border(COLOR_WHITE, state != 3);
 				b.target_mode = 0;
 			}
 
-			if ((b.hpbar_duration > 0 || keyDown_fast(78)) && b.mhp > 0)
+			if ((b.hpbar_duration > 0 || keyDown_fast(78) || state < 2) && b.mhp > 0)
 			{
+				const int bar_size = 24;
 				int x1 = b.x - 12;
-				int x2 = x1 + 24;
-				int y1 = b.y + b.height / 2 + 3;
-				int y2 = y1 + 1;
+				int x2 = x1 + bar_size;
+				int y1 = b.y + b.height / 2 + 6;
+				int y2 = y1 + 2;
 				if (b.hpbar_duration <= 1)
 				{
-					if (keyDown_fast(78)) b.hpbar_duration = 1;
+					if (keyDown_fast(78) || state < 2) b.hpbar_duration = 1;
 					else
 					{
 						BdispH_AreaFill(x1 - 1, x2 + 1, y1 - 1, y2 + 1, COLOR_WHITE);
+						BdispH_AreaFill(x2 - 5, x2 + 1, y2 + 3, y2 + 7, COLOR_WHITE);
 						b.hpbar_duration = 0;
 					}
 				}
 				if (b.hpbar_duration > 0)
 				{
-					int fill = x1 + b.hpbar * 24 / HPBAR_SIZE;
+					int fill = x1 + b.hpbar * bar_size / HPBAR_INTERVALS;
 					BdispH_AreaFill(x1, x2, y1 - 1, y1 - 1, COLOR_BLACK);
 					BdispH_AreaFill(x1 - 1, x1 - 1, y1 - 1, y2 + 1, COLOR_BLACK);
 					BdispH_AreaFill(x2 + 1, x2 + 1, y1 - 1, y2 + 1, COLOR_BLACK);
 					BdispH_AreaFill(x1, x2, y2 + 1, y2 + 1, COLOR_BLACK);
-					color_t c = b.hpbar >= HPBAR_SIZE / 2 ? COLOR_GREEN : b.hpbar > HPBAR_SIZE / 5 ? 0xC600 : COLOR_RED;
+					color_t c = b.hpbar >= HPBAR_INTERVALS / 2 ? COLOR_GREEN : b.hpbar > HPBAR_INTERVALS / 5 ? 0xC600 : COLOR_RED;
 					BdispH_AreaFill(x1, fill, y1, y2, c);
 					BdispH_AreaFill(fill + 1 - (b.hp == 0), x2, y1, y2, COLOR_WHITE);
+					int n = b.hpbar * b.mhp / HPBAR_INTERVALS;
+					n = MAX(n, b.hp);
+					draw_small_num(1, x2 - 5, y2 + 3, n, 2);
 				}
 			}
 			b.prev_x = b.x;
@@ -220,17 +242,11 @@ void screen_battle::draw()
 				effects[i][0] = 0;
 			else
 			{
-				char buffer[20];
-				memset(buffer, 0, sizeof(buffer));
-				if (effects[i][0] > 0)
-					sprintf(buffer, "%d", effects[i][0]);
-				else sprintf(buffer, messages[-effects[i][0] - 1], effects[i][0]);
-				int x = effects[i][1] - strlen(buffer) * 8;
-				int y = effects[i][2] - 15 + (effects[i][3] * effects[i][3]) / 60;
-				PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
-				effects[i][4] = effects[i][3];
+				draw_effect(effects[i], true);
 			}
 		}
+	if (state != 2)
+		player::pl.show_stats();
 }
 
 const char command_text[][8] =
@@ -310,37 +326,71 @@ int screen_battle::routine()
 			break;
 		case 3:
 			// enemy phase
+			// calculate enemies' moving position
+			character::bchs[0].target_pos = character::bchs[0].x + 30;
+			for (int i = 1; i < 10; i++)
+			{
+				if (character::bchs[i].mhp > 0)
+				{
+					int mov = (int)(Q_rsqrt((float)character::bchs[0].speed / character::bchs[i].speed) * 24);
+
+					int min = character::bchs[character::bchs[i].prev].target_pos + 32;
+					min = MAX(min, character::bchs[i].x - mov);
+					int max = MIN(355, character::bchs[i].x + mov);
+					if (character::bchs[i].next != -1)
+						max = MIN(max, character::bchs[character::bchs[i].next].x - 32);
+					if (max <= min) max = min + 1;
+					character::bchs[i].target_pos = ran() % (max - min) + min;
+					if (character::bchs[i].target_pos < character::bchs[i].x - 5)
+						character::bchs[i].target_pos -= 3;
+					else if (character::bchs[i].target_pos > character::bchs[i].x + 5)
+						character::bchs[i].target_pos += 3;
+					else character::bchs[i].target_pos = character::bchs[i].x;
+				}
+			}
+
 			for (int j = 1; j < 12; j++)
 				gc.update();
 
-			for (int i = 0; i < 30; i++)
+			// enemies move
+			bool done = false;
+			for (int i = 0; i < 60; i++)
 			{
+				done = true;
 				for (int j = 1; j < 10; j++)
 				{
-					if (character::bchs[j].mhp > 0 && character::bchs[j].x > character::bchs[character::bchs[j].prev].x + 30)
-						character::bchs[j].x--;
+					if (character::bchs[j].mhp > 0)
+					{
+						if (character::bchs[j].x != character::bchs[j].target_pos)
+						{
+							done = false;
+							int delta = character::bchs[j].x - character::bchs[j].target_pos;
+							if (i % 2 && abs(delta) < 24) continue;
+							if (delta > 0)
+								character::bchs[j].x--;
+							else character::bchs[j].x++;
+						}
+					}
 				}
-				gc.update();
+				if (done) break;
 				gc.update();
 			}
 
-			// enemy attacks
+			for (int j = 1; j < 10; j++)
+				gc.update();
+
+			// enemies attack
 			for (int j = 1; j < 10; j++)
 			{
 				if (character::bchs[j].mhp > 0)
 				{
-					character::bchs[j].wait_gauge += (int)Q_rsqrt((float)character::bchs[0].speed / (character::bchs[j].speed << 20));
-					while (character::bchs[j].wait_gauge >= 1024)
-					{
-						character::bchs[j].target_mode = 1;
-						for (int j = 1; j < 17; j++)
-							gc.update();
-						character::bchs[j].target_mode = -1;
-						character::bchs[j].wait_gauge -= 1024;
-						enemy_attack(j);
-						for (int j = 1; j < 8; j++)
-							gc.update();
-					}
+					character::bchs[j].target_mode = 1;
+					for (int j = 1; j < 18; j++)
+						gc.update();
+					character::bchs[j].target_mode = -1;
+					enemy_attack(j);
+					for (int j = 1; j < 9; j++)
+						gc.update();
 				}
 			}
 
@@ -408,7 +458,7 @@ void screen_battle::attack_jump(int target)
 	for (int i = 0; i < 6; i++)
 		gc.update();
 
-	for (int a = 0; a < 3; a++)
+	for (int a = 0; a < 2; a++)
 	{
 		// 0=Initial -=failed +=success
 		int action_command = 0;
@@ -577,8 +627,8 @@ int screen_battle::damage(int target, int damage, int message)
 	character::bchs[target].hp -= damage;
 	if (character::bchs[target].hp < 0) character::bchs[target].hp = 0;
 	if (message < 0)
-		add_effect(message, character::bchs[target].x - 5, character::bchs[target].y - 32);
-	return add_effect(damage, character::bchs[target].x - 5, character::bchs[target].y - 15);
+		add_effect(message, character::bchs[target].x - 7, character::bchs[target].y - 27);
+	return add_effect(damage, character::bchs[target].x - 7, character::bchs[target].y - 15);
 }
 
 void screen_battle::draw_icons(bool always_draw)
@@ -589,7 +639,7 @@ void screen_battle::draw_icons(bool always_draw)
 	prev_command_no = command_no;
 	prev_state = state;
 
-	BdispH_AreaFill(0, 383, 155, 215, COLOR_WHITE);
+	BdispH_AreaFill(0, 383, 164, 215, COLOR_WHITE);
 
 	int istart = 0;
 	int iend = 2;
@@ -611,10 +661,10 @@ void screen_battle::draw_icons(bool always_draw)
 
 			int x = 0;
 			int y = 0;
-			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
+			PrintMiniMini(&x, &y, command_text[command_no], 0x52, TEXT_COLOR_BLACK, 1);
 			x = sx - x / 2;
-			y = 158;
-			PrintMini(&x, &y, command_text[command_no], 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+			y = 164;
+			PrintMiniMini(&x, &y, command_text[command_no], 0x52, TEXT_COLOR_BLACK, 0);
 		}
 	}
 
@@ -638,8 +688,8 @@ int screen_battle::add_effect(int type, int x, int y)
 			effects[i][0] = type;
 			effects[i][1] = x;
 			effects[i][2] = y;
-			effects[i][3] = 30;
-			effects[i][4] = 30;
+			effects[i][3] = 50;
+			effects[i][4] = 50;
 			return i;
 		}
 	}
@@ -694,7 +744,6 @@ void screen_battle::wait_for_deaths()
 void screen_battle::die(int target)
 {
 	character::bchs[target].mhp = 0;
-	character::bchs[target].wait_gauge = 0;
 	if (character::bchs[target].prev != -1)
 		character::bchs[character::bchs[target].prev].next = character::bchs[target].next;
 	if (character::bchs[target].next != -1)
@@ -733,11 +782,17 @@ void screen_battle::enemy_attack(int attacker)
 			}
 			else if (action_command != 0) break;
 
-			if ((keys.action) && action_command >= 0)
+			if ((keys.action) && action_command == 0)
 			{
 				if (f < 40 - (range + 1) / 2)
-					action_command = (f < 20 ? 0 : -1);
-				else action_command = 1 + (f >= 40) + (f == 40);
+					action_command = (f < 24 ? 0 : -1);
+				else action_command = 1;
+			}
+			if ((keys.cancel) && action_command == 0)
+			{
+				if (f != 40)
+					action_command = (f < 28 ? 0 : -1);
+				else action_command = 2;
 			}
 			gc.update();
 		}
