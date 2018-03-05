@@ -20,6 +20,20 @@ void player::set_character(character& ch)
 	ch.hpbar = HPBAR_INTERVALS;
 }
 
+void player::set_deck()
+{
+	num_spells = 2;
+	deck[0] = 1;
+	deck[1] = 2;
+	for (int i = 3; i < 100; i++)
+	{
+		for (int j = 0; j < upgrades[i]; j++)
+		{
+			deck[num_spells++] = i;
+		}
+	}
+}
+
 void player::show_stats()
 {
 	char buffer[60];
@@ -40,6 +54,12 @@ void player::show_stats()
 		character::bchs[0].speed);
 	x += 6;
 	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	if (num_spells > 0)
+	{
+		x += 12;
+		sprintf(buffer, "Card=%d", num_spells);
+		PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	}
 	/*
 	x = 0;
 	y += 12;

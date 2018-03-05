@@ -18,8 +18,13 @@ private:
 	int target_no;
 	int state;
 	int target_timer;
+	int spells_left;
+
+	int spells[4]; // currently drawn spells
 
 	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
+
+	void prepare_spells();
 
 	void draw_icons(bool draw_icons);
 	int add_effect(int type, int x, int y);

@@ -34,3 +34,5 @@ private:
 	int num_options;
 	upgrade ups[10];
 };
+
+extern const char upgrade_name[][16];

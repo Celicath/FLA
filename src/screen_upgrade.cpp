@@ -161,6 +161,7 @@ int screen_upgrade::routine()
 			{
 				player::pl.upgrades[ups[selected_no].no]++;
 				player::pl.rest--;
+				player::pl.set_deck();
 				player::pl.set_character(character::bchs[0]);
 				break;
 			}
