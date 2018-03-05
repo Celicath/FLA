@@ -13,6 +13,7 @@ public:
 	virtual void redraw() override;
 	virtual int routine() override;
 private:
+	int stage;
 	int command_no;
 	int target_no;
 	int state;

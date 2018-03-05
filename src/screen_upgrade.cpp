@@ -167,10 +167,6 @@ int screen_upgrade::routine()
 		}
 	}
 	DmaWaitNext();
-	int key;
-	do
-	{
-		GetKey(&key);
-	} while (key != KEY_CTRL_EXE);
+	wait_for_key(KEY_CTRL_EXE);
 	return 1;
 }

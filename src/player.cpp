@@ -32,7 +32,7 @@ void player::show_stats()
 	int x = 2;
 	int y = 2;
 	PrintMiniMini(&x, &y, buffer, 0x52, TEXT_COLOR_BLACK, 0);
-	sprintf(buffer, "HP %2d/%2d Atk %2d Def %2d Spd %2d",
+	sprintf(buffer, "HP %d/%d Atk %d Def %d Spd %d",
 		character::bchs[0].hp,
 		character::bchs[0].mhp,
 		character::bchs[0].attack,
@@ -40,4 +40,14 @@ void player::show_stats()
 		character::bchs[0].speed);
 	x += 6;
 	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	/*
+	x = 0;
+	y += 12;
+	sprintf(buffer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()");
+	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	x = 0;
+	y += 12;
+	sprintf(buffer, "abcdefghijklmnopqrstuvwxyz1234567890");
+	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	*/
 }

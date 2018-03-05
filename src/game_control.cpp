@@ -40,11 +40,7 @@ void game_control::pause()
 
 	DmaWaitNext();
 	PrintCXY(138, 72, "Paused", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
-	int key;
-	do
-	{
-		GetKey(&key);
-	} while (key != KEY_CTRL_EXIT);
+	wait_for_key(KEY_CTRL_EXIT);
 	prev_time = RTC_GetTicks();
 	Bdisp_AllClr_VRAM();
 	redraw();

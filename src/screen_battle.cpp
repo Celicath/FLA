@@ -24,6 +24,7 @@ screen_battle::screen_battle()
 
 void screen_battle::load(int troop_no)
 {
+	stage = troop_no;
 	command_no = 0;
 	target_no = 0;
 
@@ -33,19 +34,19 @@ void screen_battle::load(int troop_no)
 	switch (troop_no)
 	{
 	case 1:
-		character::bchs[1] = character(0);
-		character::bchs[2] = character(0);
+		character::bchs[1] = character(1);
+		character::bchs[2] = character(1);
 		break;
 	case 2:
-		character::bchs[1] = character(0);
-		character::bchs[2] = character(0);
-		character::bchs[3] = character(0);
+		character::bchs[1] = character(1);
+		character::bchs[2] = character(1);
+		character::bchs[3] = character(1);
 		break;
 	case 3:
 		int pos = ran() % 2;
-		character::bchs[1] = character(pos + 1);
-		character::bchs[2] = character(3);
-		character::bchs[3] = character(2 - pos);
+		character::bchs[1] = character(pos + 2);
+		character::bchs[2] = character(4);
+		character::bchs[3] = character(3 - pos);
 		break;
 	}
 	int c = 0;
@@ -159,7 +160,7 @@ void screen_battle::draw()
 		int sth = ((target_timer + 16) % 48) - 24;
 		if (sth < 0) sth = -sth;
 
-		sth = sth * 63 / 24;
+		sth = sth * 31 / 12;
 		c = ((sth / 2) << 11) + (sth << 5) + (sth / 2);
 	}
 	for (int i = 0; i < 10; i++)
@@ -263,7 +264,24 @@ void screen_battle::redraw()
 
 int screen_battle::routine()
 {
+	state = 2;
+	gc.update();
+	player::pl.show_stats();
+	DmaWaitNext();
+	MsgBoxPush(3);
+	{
+		char buffer[20];
+		int x = 0;
+		int y = 95;
+		sprintf(buffer, "- STAGE %d -", stage);
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 0, 0);
+		x = (LCD_WIDTH_PX - x) / 2;
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+		wait_for_key(KEY_CTRL_EXE);
+		MsgBoxPop();
+	}
 	state = 0;
+
 	for (;;)
 	{
 		gc.update();
@@ -412,17 +430,9 @@ int screen_battle::routine()
 	MsgBoxPush(4);
 	PrintCXY(120, 42, "You Win!", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	PrintCXY(138, 66, "EXP 10", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
-	PrintCXY(84, 90, "Press [EXIT]", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
-	int key;
-	do
-	{
-		GetKey(&key);
-	} while (key != KEY_CTRL_EXIT);
+	PrintCXY(93, 90, "Press [EXE]", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	wait_for_key(KEY_CTRL_EXE);
 	MsgBoxPop();
-	do
-	{
-		GetKey(&key);
-	} while (key != KEY_CTRL_EXIT);
 	return 0;
 }
 
