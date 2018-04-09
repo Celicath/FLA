@@ -78,7 +78,7 @@ void game_control::start()
 	clock = 0;
 	last_draw = 0;
 
-	for (int level = 1; level <= 20; level++)
+	for (int level = 0; level <= 20; level++)
 	{
 		screens[1]->load(level);
 		redraw();

@@ -13,6 +13,8 @@ public:
 	upgrade(int no_);
 
 	void draw(int x, int y);
+
+	static void get_description(char* buffer, int no);
 };
 
 

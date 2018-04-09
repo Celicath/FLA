@@ -7,13 +7,17 @@ player player::pl;
 player::player()
 {
 	memset(upgrades, 0, sizeof(upgrades));
+	upgrades[3] = 1;
+	upgrades[4] = 1;
 	rest = 0;
 }
 
 void player::set_character(character& ch)
 {
-	ch.level = (upgrades[0] + upgrades[1] + upgrades[2]) + 1;
-	ch.hp = ch.mhp = 10 + ch.level * 2;
+	ch.level = -1;
+	for (int i = 0; i < 100; i++)
+		ch.level += upgrades[i];
+	ch.hp = ch.mhp = 18 + ch.level * 2;
 	ch.attack = 4 + upgrades[0];
 	ch.defense = 0 + upgrades[1];
 	ch.speed = 2 + upgrades[2];
@@ -22,9 +26,7 @@ void player::set_character(character& ch)
 
 void player::set_deck()
 {
-	num_spells = 2;
-	deck[0] = 1;
-	deck[1] = 2;
+	num_spells = 0;
 	for (int i = 3; i < 100; i++)
 	{
 		for (int j = 0; j < upgrades[i]; j++)

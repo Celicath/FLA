@@ -22,18 +22,19 @@ private:
 
 	int spells[4]; // currently drawn spells
 
-	int effects[10][5];	// 0=type 1=x 2=y 3=count 4=prev_count
+	int effects[10][6];	// 0=type 1=x 2=y 3=count 4=prev_count
 
 	void prepare_spells();
 
 	void draw_icons(bool draw_icons);
-	int add_effect(int type, int x, int y);
+	int add_effect(int type, int x, int y, int color = 0);
 
 	bool targetable(int target, int skill_no);
 	void find_target(int skill_no);
 
 	// helper functions
 	int damage(int target, int damage, int message);
+	int heal(int target, int damage);
 	void trigger_deaths();
 	void wait_for_deaths();
 	void die(int target);
@@ -41,6 +42,7 @@ private:
 	// attacks
 	void attack_jump(int target);
 	void attack_dive(int target);
+	void play_spell(int spell_no, int target);
 
 	// enemy attack
 	void enemy_attack(int attacker);

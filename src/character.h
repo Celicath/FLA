@@ -26,6 +26,10 @@ public:
 	int speed;
 	int target_mode;	// 0=no border 1=border -1=erase border
 
+	int attack_temp;
+	int defense_temp;
+	int speed_temp;
+
 	int prev;
 	int next;
 

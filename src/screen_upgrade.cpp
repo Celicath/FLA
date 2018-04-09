@@ -18,6 +18,8 @@ const char upgrade_name[][16] =
 	"Level UP (Atk)",
 	"Level UP (Def)",
 	"Level UP (Spd)",
+	"Gain Strength",
+	"Potion",
 	"Fireball",
 	"Frostbolt",
 	"Wind Blast",
@@ -27,7 +29,7 @@ const char upgrade_name[][16] =
 /* 0=passive 1=normal 2=fire 3=ice 4=wind 5=earth */
 const int upgrade_type[] =
 {
-	0, 0, 0, 2, 3, 4, 5
+	1, 1, 0, 0, 0, 2, 3, 4, 5
 };
 
 const char type_name[][16] =
@@ -52,6 +54,23 @@ void upgrade::draw(int x, int y)
 		draw_target_border(x, y, 32, 32, COLOR_BLACK);
 }
 
+void upgrade::get_description(char* buffer, int no)
+{
+	memset(buffer, 0, sizeof(buffer));
+	switch(no)
+	{
+	case 0: case 1: case 2:
+		sprintf(buffer, "Increase %s by 1.", no == 0 ? "Attack" : no == 1 ? "Deffense" : "Speed");
+		break;
+	case 3: sprintf(buffer, "Increase your attack by 1 this turn."); break;
+	case 4: sprintf(buffer, "Restore 10 HP."); break;
+	case 5:	sprintf(buffer, "6 damage to Area(small)."); break;
+	case 6: sprintf(buffer, "4 damage + slow to Area(small)."); break;
+	case 7: sprintf(buffer, "3 damage + knockback to all enemies."); break;
+	case 8: sprintf(buffer, "4 damage to Area(large)."); break;
+	}
+}
+
 screen_upgrade::screen_upgrade() : num_options(4)
 {
 }
@@ -60,7 +79,9 @@ void screen_upgrade::shuffle()
 {
 	for (int i = 0; i < num_options; i++)
 	{
-		ups[i] = upgrade(ran() % 7);
+		int k = ran() % 7 + 2;
+		if (k < 5) k -= 2;
+		ups[i] = upgrade(k);
 		for (int j = 0; j < i; j++)
 			if (ups[i].no == ups[j].no)
 			{
@@ -117,17 +138,8 @@ void screen_upgrade::draw_desc()
 	t = 160;
 	PrintMiniMini(&s, &t, type_name[upgrade_type[no]], 0x50, TEXT_COLOR_BLACK, 0);
 
-	memset(buffer, 0, sizeof(buffer));
-	if (no < 3)
-		sprintf(buffer, "HP+%d, %s+1", 2, no == 0 ? "Atk" : no == 1 ? "Def" : "Spd");
-	else if (no == 3)
-		sprintf(buffer, "6 damage to Area(small).");
-	else if (no == 4)
-		sprintf(buffer, "4 damage + slow to Area(small).");
-	else if (no == 5)
-		sprintf(buffer, "3 damage + knockback to all enemies.");
-	else if (no == 6)
-		sprintf(buffer, "4 damage to Area(large).");
+	upgrade::get_description(buffer, no);
+
 	s = 26;
 	t = 175;
 	PrintMiniMini(&s, &t, buffer, 0x40, TEXT_COLOR_BLACK, 0);

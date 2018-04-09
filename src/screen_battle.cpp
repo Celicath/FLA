@@ -107,24 +107,15 @@ const char messages[][12] = {
 
 void draw_effect(int effect[], bool draw_mode)
 {
-	if (draw_mode)
-	{
-		char buffer[20];
-		memset(buffer, 0, sizeof(buffer));
-		if (effect[0] > 0)
-			sprintf(buffer, "%d", effect[0]);
-		else sprintf(buffer, messages[-effect[0] - 1], effect[0]);
-		int x = effect[1] - strlen(buffer) * 5;
-		int y = effect[2] - 20 + (effect[3] * effect[3]) / 100;
-		PrintMiniMini(&x, &y, buffer, 0x52, effect[0] > 0 ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
-		effect[4] = effect[3];
-	}
-	else
-	{
-		int x = effect[1];
-		int y = effect[2] - 20 + (effect[4] * effect[4]) / 100;
-		BdispH_AreaFill(x - 72, x + 64, y, y + 12, COLOR_WHITE);
-	}
+	char buffer[20];
+	memset(buffer, 0, sizeof(buffer));
+	if (effect[0] > 0)
+		sprintf(buffer, "%d", effect[0]);
+	else sprintf(buffer, messages[-effect[0] - 1], effect[0]);
+	int x = effect[1] - strlen(buffer) * 5;
+	int y = effect[2] - 20 + (draw_mode ? effect[3] * effect[3] : effect[4] * effect[4]) / 100;
+	PrintMiniMini(&x, &y, buffer, 0x52, draw_mode ? effect[5] : TEXT_COLOR_WHITE, 0);
+	effect[4] = effect[3];
 }
 
 void screen_battle::draw()
@@ -308,7 +299,7 @@ int screen_battle::routine()
 			}
 			if (keys.action)
 			{
-				find_target(command_no);
+				find_target(command_no >= 3 ? spells[command_no - 3] : command_no);
 				state = 1;
 			}
 			break;
@@ -320,8 +311,8 @@ int screen_battle::routine()
 				do
 				{
 					target_no = character::bchs[target_no].next;
-					if (target_no == -1) target_no = character::bchs[0].next;
-				} while (!targetable(target_no, command_no));
+					if (target_no == -1) target_no = 0;
+				} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
 			}
 			if (keys.left)
 			{
@@ -330,8 +321,8 @@ int screen_battle::routine()
 				do
 				{
 					target_no--;
-					if (target_no < 1) target_no = 9;
-				} while (!targetable(target_no, command_no));
+					if (target_no < 0) target_no = 9;
+				} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
 			}
 			character::bchs[target_no].target_mode = 1;
 
@@ -342,9 +333,19 @@ int screen_battle::routine()
 					attack_jump(target_no);
 				else if (command_no == 1)
 					attack_dive(target_no);
-				else character::bchs[target_no].target_mode = -1;
+				else if (command_no == 2)
+				{
+					character::bchs[target_no].defense++;
+					character::bchs[target_no].defense_temp++;
+				}
+				else
+					play_spell(spells[command_no - 3], target_no);
+				character::bchs[target_no].target_mode = -1;
+				update();
 
-				state = 3;
+				if (command_no <= 2)
+					state = 3;
+				else state = 0;
 			}
 			else if (keys.cancel)
 			{
@@ -427,6 +428,14 @@ int screen_battle::routine()
 
 			state = 0;
 			prepare_spells();
+
+			// remove player's buffs
+			character::bchs[0].attack -= character::bchs[0].attack_temp;
+			character::bchs[0].defense -= character::bchs[0].defense_temp;
+			character::bchs[0].speed -= character::bchs[0].speed_temp;
+			character::bchs[0].attack_temp = 0;
+			character::bchs[0].defense_temp = 0;
+			character::bchs[0].speed_temp = 0;
 			break;
 		}
 
@@ -640,6 +649,19 @@ void screen_battle::attack_dive(int target)
 	wait_for_deaths();
 }
 
+void screen_battle::play_spell(int spell_no, int target)
+{
+	if (spell_no == 3)
+	{
+		character::bchs[target].attack++;
+		character::bchs[target].attack_temp++;
+	}
+	if (spell_no == 4)
+	{
+		heal(target, 10);
+	}
+}
+
 int screen_battle::damage(int target, int damage, int message)
 {
 	damage -= character::bchs[target].defense;
@@ -649,7 +671,15 @@ int screen_battle::damage(int target, int damage, int message)
 	if (character::bchs[target].hp < 0) character::bchs[target].hp = 0;
 	if (message < 0)
 		add_effect(message, character::bchs[target].x - 7, character::bchs[target].y - 27);
-	return add_effect(damage, character::bchs[target].x - 7, character::bchs[target].y - 15);
+	return add_effect(damage, character::bchs[target].x - 7, character::bchs[target].y - 15, TEXT_COLOR_RED);
+}
+
+int screen_battle::heal(int target, int amount)
+{
+	character::bchs[target].hpbar_duration = 48;
+	character::bchs[target].hp += amount;
+	if (character::bchs[target].hp > character::bchs[target].mhp) character::bchs[target].hp = character::bchs[target].mhp;
+	return add_effect(amount, character::bchs[target].x - 7, character::bchs[target].y - 15, TEXT_COLOR_BLUE);
 }
 
 void screen_battle::prepare_spells()
@@ -730,7 +760,7 @@ void screen_battle::draw_icons(bool always_draw)
 	}
 }
 
-int screen_battle::add_effect(int type, int x, int y)
+int screen_battle::add_effect(int type, int x, int y, int color)
 {
 	for (int i = 0; i < 10; i++)
 	{
@@ -741,6 +771,7 @@ int screen_battle::add_effect(int type, int x, int y)
 			effects[i][2] = y;
 			effects[i][3] = 50;
 			effects[i][4] = 50;
+			effects[i][5] = color;
 			return i;
 		}
 	}
@@ -749,6 +780,7 @@ int screen_battle::add_effect(int type, int x, int y)
 
 bool screen_battle::targetable(int target, int skill_no)
 {
+	if (skill_no >= 2 && skill_no <= 4) return !target;
 	if (target < 1 || target >= 10) return false;
 	if (character::bchs[target].mhp <= 0) return false;
 	if (skill_no == 1)
@@ -759,11 +791,11 @@ bool screen_battle::targetable(int target, int skill_no)
 void screen_battle::find_target(int skill_no)
 {
 	target_timer = 0;
-	if (target_no < 1 || target_no > 9) target_no = 1;
+	if (target_no < 0 || target_no > 9) target_no = 0;
 	while (!targetable(target_no, skill_no))
 	{
 		target_no = character::bchs[target_no].next;
-		if (target_no > 9) target_no = character::bchs[0].next;
+		if (target_no > 9) target_no = 0;
 	}
 }
 
