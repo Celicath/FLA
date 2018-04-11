@@ -21,6 +21,8 @@ public:
 	int level;
 	int hp;
 	int mhp;
+	int sp;
+	int msp;
 	int attack;
 	int defense;
 	int speed;

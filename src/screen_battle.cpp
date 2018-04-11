@@ -63,7 +63,7 @@ void screen_battle::load(int troop_no)
 		else break;
 	}
 
-	spells_left = player::pl.num_spells;
+	player::pl.cards_left = player::pl.num_spells;
 }
 
 void screen_battle::update()
@@ -148,6 +148,15 @@ void screen_battle::draw()
 			BdispH_AreaFill(b.prev_x + 7, b.prev_x + 13, b.prev_y + b.height / 2 + 11, b.prev_y + b.height / 2 + 15, COLOR_WHITE);
 		}
 	}
+
+	if (state == 4)
+	{
+		// play_spell animation deletion
+		int sx = 40 * command_no + 107;
+		int sy = prev_drawing_frame < 32 ? 163 + (32 - prev_drawing_frame) * (32 - prev_drawing_frame) / 32 : 163;
+		BdispH_AreaFill(sx - 16, sx + 15, sy - 16, sy + 17, COLOR_WHITE);
+	}
+
 	color_t c = COLOR_BLACK;
 	if (state == 1)
 	{
@@ -189,7 +198,7 @@ void screen_battle::draw()
 				b.draw_target_border(c, state != 3);
 			else if (b.target_mode == -1)
 			{
-				b.draw_target_border(COLOR_WHITE, state != 3);
+				b.draw_target_border(COLOR_WHITE);
 				b.target_mode = 0;
 			}
 
@@ -242,6 +251,17 @@ void screen_battle::draw()
 		}
 	if (state != 2)
 		player::pl.show_stats();
+
+	if (state == 4)
+	{
+		// spell using animation
+		int sx = 40 * command_no + 107;
+		int sy = drawing_frame < 32 ? 163 + (32 - drawing_frame) * (32 - drawing_frame) / 32 : 163;
+		if (drawing_frame > 32)
+			CopySpriteAlpha(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32, 0, 64 - drawing_frame);
+		else CopySprite(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32);
+		prev_drawing_frame = drawing_frame;
+	}
 }
 
 const char command_text[][8] =
@@ -299,6 +319,8 @@ int screen_battle::routine()
 			}
 			if (keys.action)
 			{
+				if (command_no >= 3 && character::bchs[0].sp < 1)
+					break;
 				find_target(command_no >= 3 ? spells[command_no - 3] : command_no);
 				state = 1;
 			}
@@ -339,13 +361,19 @@ int screen_battle::routine()
 					character::bchs[target_no].defense_temp++;
 				}
 				else
+				{
+					character::bchs[0].sp--;
 					play_spell(spells[command_no - 3], target_no);
+				}
 				character::bchs[target_no].target_mode = -1;
-				update();
 
 				if (command_no <= 2)
 					state = 3;
-				else state = 0;
+				else
+				{
+					state = 0;
+					command_no = 0;
+				}
 			}
 			else if (keys.cancel)
 			{
@@ -453,6 +481,7 @@ int screen_battle::routine()
 	PrintCXY(93, 90, "Press [EXE]", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
 	wait_for_key(KEY_CTRL_EXE);
 	MsgBoxPop();
+	player::pl.set_character(character::bchs[0]);
 	return 0;
 }
 
@@ -651,6 +680,18 @@ void screen_battle::attack_dive(int target)
 
 void screen_battle::play_spell(int spell_no, int target)
 {
+	int prev_state = state;
+	state = 4;
+	for (int i = 0; i <= 64; i++)
+	{
+		drawing_frame = prev_drawing_frame = i;
+		gc.update(i == 64);
+	}
+	state = prev_state;
+	spells[command_no - 3] = 0;
+	player::pl.cards_left--;
+	player::pl.deck[command_no - 3] = player::pl.deck[player::pl.cards_left];
+
 	if (spell_no == 3)
 	{
 		character::bchs[target].attack++;
@@ -684,17 +725,18 @@ int screen_battle::heal(int target, int amount)
 
 void screen_battle::prepare_spells()
 {
+	character::bchs[0].sp = character::bchs[0].msp;
 	spells[0] = spells[1] = spells[2] = spells[3] = 0;
-	if (player::pl.num_spells < 4)
+	if (player::pl.cards_left < 3)
 	{
-		for (int i = 0; i < player::pl.num_spells; i++)
+		for (int i = 0; i < player::pl.cards_left; i++)
 			spells[i] = player::pl.deck[i];
 	}
 	else
 	{
-		for (int i = 0; i < spells_left; i++)
+		for (int i = 0; i < player::pl.cards_left; i++)
 		{
-			int j = spells_left - 1 - ran() % (spells_left - i);
+			int j = player::pl.cards_left - 1 - ran() % (player::pl.cards_left - i);
 			int tmp = player::pl.deck[i];
 			player::pl.deck[i] = player::pl.deck[j];
 			player::pl.deck[j] = tmp;
@@ -725,8 +767,8 @@ void screen_battle::draw_icons(bool always_draw)
 			CopySprite(sprite_command[i], sx, 195, 32, 32);
 		else
 		{
-			if (!player::pl.deck[i - 3]) break;
-			CopySprite(sprite_icons[player::pl.deck[i - 3]], sx, 195, 32, 32);
+			if (!spells[i - 3]) continue;
+			CopySprite(sprite_icons[spells[i - 3]], sx, 195, 32, 32);
 		}
 
 		if (command_no == i)
@@ -738,14 +780,32 @@ void screen_battle::draw_icons(bool always_draw)
 			else if (state == 1)
 				BdispH_AreaReverse(sx - 15, sx + 14, 180, 209);
 
-			const char* tx = i < 3 ? command_text[command_no] : upgrade_name[player::pl.deck[command_no - 3]];
+			const char* tx = i < 3 ? command_text[command_no] : upgrade_name[spells[command_no - 3]];
 
 			int x = 0;
-			int y = 0;
+			int y = 164;
 			PrintMiniMini(&x, &y, tx, 0x52, TEXT_COLOR_BLACK, 1);
 			x = sx - x / 2;
-			y = 164;
 			PrintMiniMini(&x, &y, tx, 0x52, TEXT_COLOR_BLACK, 0);
+		}
+	}
+	if (state < 2 && player::pl.cards_left > 0)
+	{
+		int x = 0;
+		int y = 183;
+		PrintMiniMini(&x, &y, "SP", 0x52, TEXT_COLOR_BLACK, 1);
+		x = 194 - x / 2;
+		PrintMiniMini(&x, &y, "SP", 0x52, 0x8400, 0);
+		for (int i = 0; i < character::bchs[0].msp; i++)
+		{
+			x = 195 + (2 * i - character::bchs[0].msp) * 5;
+			y = 198;
+			int size = 8;
+			BdispH_AreaFill(x, x + size, y, y + size, COLOR_BLACK);
+			if (i < character::bchs[0].sp)
+				BdispH_AreaFill(x + 1, x + size - 1, y + 1, y + size - 1, COLOR_YELLOW);
+			else
+				BdispH_AreaFill(x + 1, x + size - 1, y + 1, y + size - 1, COLOR_WHITE);
 		}
 	}
 

@@ -7,7 +7,8 @@ public:
 	player();
 	int upgrades[100];
 	int num_spells = 0;
-	int deck[40];
+	int cards_left = 0;
+	int deck[80];
 
 	int rest;
 

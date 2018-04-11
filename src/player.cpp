@@ -22,6 +22,9 @@ void player::set_character(character& ch)
 	ch.defense = 0 + upgrades[1];
 	ch.speed = 2 + upgrades[2];
 	ch.hpbar = HPBAR_INTERVALS;
+	ch.attack_temp = ch.defense_temp = ch.speed_temp = 0;
+
+	ch.sp = ch.msp = 1;
 }
 
 void player::set_deck()
@@ -48,18 +51,24 @@ void player::show_stats()
 	int x = 2;
 	int y = 2;
 	PrintMiniMini(&x, &y, buffer, 0x52, TEXT_COLOR_BLACK, 0);
-	sprintf(buffer, "HP %d/%d Atk %d Def %d Spd %d",
-		character::bchs[0].hp,
-		character::bchs[0].mhp,
-		character::bchs[0].attack,
-		character::bchs[0].defense,
-		character::bchs[0].speed);
 	x += 6;
+	PrintMiniMini(&x, &y, "HP ", 0x42, TEXT_COLOR_BLACK, 0);
+	sprintf(buffer, "%d", character::bchs[0].hp);
+	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].hp <= character::bchs[0].mhp / 3 ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
+	sprintf(buffer, "/ %d Atk ", character::bchs[0].mhp);
 	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	sprintf(buffer, "%d", character::bchs[0].attack);
+	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].attack_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
+	PrintMiniMini(&x, &y, " Def ", 0x42, TEXT_COLOR_BLACK, 0);
+	sprintf(buffer, "%d", character::bchs[0].defense);
+	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].defense_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
+	PrintMiniMini(&x, &y, " Spd ", 0x42, TEXT_COLOR_BLACK, 0);
+	sprintf(buffer, "%d", character::bchs[0].speed);
+	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].speed_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
 	if (num_spells > 0)
 	{
 		x += 12;
-		sprintf(buffer, "Card=%d", num_spells);
+		sprintf(buffer, "Card=%d/%d", cards_left, num_spells);
 		PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
 	}
 	/*
