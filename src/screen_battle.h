@@ -28,6 +28,7 @@ private:
 	void prepare_spells();
 
 	void draw_icons(bool draw_icons);
+	void draw_spell_effect(int frame, bool draw_mode);
 	int add_effect(int type, int x, int y, int color = 0);
 
 	bool targetable(int target, int skill_no);

@@ -118,6 +118,37 @@ void draw_effect(int effect[], bool draw_mode)
 	effect[4] = effect[3];
 }
 
+void screen_battle::draw_spell_effect(int frame, bool draw_mode)
+{
+	color_t* VRAM = (color_t*)GetVRAMAddress();
+	for (int k = 0; k < 7; k++)
+	{
+		// test: fireball animation
+		int t = frame - 6 + k;
+		if (t < 0 || t > 67) continue;
+		if (t > 64) t = 64;
+		int sx = (character::bchs[0].x * (64 - t) + character::bchs[target_no].x * t) / 64 - 2;
+		int sy = ((character::bchs[0].y - 20) * (64 - t) + (character::bchs[target_no].y - 5) * t) / 64 + ((t - 32) * (t - 32) - 1024) / 32;
+
+		if (draw_mode)
+		{
+			int ratio = k * 7 + 11;
+			for (int i = -7; i <= 7; i++)
+			{
+				for (int j = -7; j <= 7; j++)
+				{
+					if (i * i + j * j <= ratio)
+					{
+						VRAM[(sy + j) * LCD_WIDTH_PX + (sx + i)] = 0xF800 + (ratio - i * i - j * j) * 0x20;
+					}
+				}
+			}
+		}
+		else
+			BdispH_AreaFill(sx - 7, sx + 7, sy - 7, sy + 7, COLOR_WHITE);
+	}
+}
+
 void screen_battle::draw()
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
@@ -151,10 +182,14 @@ void screen_battle::draw()
 
 	if (state == 4)
 	{
-		// play_spell animation deletion
+		// spell card sliding animation deletion
 		int sx = 40 * command_no + 107;
 		int sy = prev_drawing_frame < 32 ? 163 + (32 - prev_drawing_frame) * (32 - prev_drawing_frame) / 32 : 163;
 		BdispH_AreaFill(sx - 16, sx + 15, sy - 16, sy + 17, COLOR_WHITE);
+	}
+	if (state == 5)
+	{
+		draw_spell_effect(prev_drawing_frame, false);
 	}
 
 	color_t c = COLOR_BLACK;
@@ -254,12 +289,18 @@ void screen_battle::draw()
 
 	if (state == 4)
 	{
-		// spell using animation
+		// spell card sliding animation
 		int sx = 40 * command_no + 107;
 		int sy = drawing_frame < 32 ? 163 + (32 - drawing_frame) * (32 - drawing_frame) / 32 : 163;
 		if (drawing_frame > 32)
 			CopySpriteAlpha(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32, 0, 64 - drawing_frame);
 		else CopySprite(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32);
+		prev_drawing_frame = drawing_frame;
+	}
+
+	if (state == 5)
+	{
+		draw_spell_effect(drawing_frame, true);
 		prev_drawing_frame = drawing_frame;
 	}
 }
@@ -682,9 +723,10 @@ void screen_battle::play_spell(int spell_no, int target)
 {
 	int prev_state = state;
 	state = 4;
+	prev_drawing_frame = 0;
 	for (int i = 0; i <= 64; i++)
 	{
-		drawing_frame = prev_drawing_frame = i;
+		drawing_frame = i;
 		gc.update(i == 64);
 	}
 	state = prev_state;
@@ -692,15 +734,34 @@ void screen_battle::play_spell(int spell_no, int target)
 	player::pl.cards_left--;
 	player::pl.deck[command_no - 3] = player::pl.deck[player::pl.cards_left];
 
+	character::bchs[target].target_mode = -1;
+
 	if (spell_no == 3)
 	{
 		character::bchs[target].attack++;
 		character::bchs[target].attack_temp++;
 	}
-	if (spell_no == 4)
+	else if (spell_no == 4)
 	{
 		heal(target, 10);
 	}
+	else
+	{
+		state = 5;
+		// test: fireball
+		prev_drawing_frame = 0;
+		for (int i = 0; i <= 75; i++)
+		{
+			drawing_frame = i;
+			gc.update(i == 75);
+		}
+		damage(target, 6, 0);
+	}
+
+	for (int i = 0; i < 10; i++)
+		gc.update();
+	trigger_deaths();
+	wait_for_deaths();
 }
 
 int screen_battle::damage(int target, int damage, int message)
@@ -727,7 +788,7 @@ void screen_battle::prepare_spells()
 {
 	character::bchs[0].sp = character::bchs[0].msp;
 	spells[0] = spells[1] = spells[2] = spells[3] = 0;
-	if (player::pl.cards_left < 3)
+	if (player::pl.cards_left <= 3)
 	{
 		for (int i = 0; i < player::pl.cards_left; i++)
 			spells[i] = player::pl.deck[i];
@@ -754,7 +815,7 @@ void screen_battle::draw_icons(bool always_draw)
 	prev_command_no = command_no;
 	prev_state = state;
 
-	BdispH_AreaFill(0, 383, 164, 215, COLOR_WHITE);
+	BdispH_AreaFill(0, 383, 163, 215, COLOR_WHITE);
 
 	int istart = 0;
 	int iend = 6;
@@ -783,10 +844,10 @@ void screen_battle::draw_icons(bool always_draw)
 			const char* tx = i < 3 ? command_text[command_no] : upgrade_name[spells[command_no - 3]];
 
 			int x = 0;
-			int y = 164;
-			PrintMiniMini(&x, &y, tx, 0x52, TEXT_COLOR_BLACK, 1);
+			int y = 163;
+			PrintMiniMini(&x, &y, tx, 0x42, TEXT_COLOR_BLACK, 1);
 			x = sx - x / 2;
-			PrintMiniMini(&x, &y, tx, 0x52, TEXT_COLOR_BLACK, 0);
+			PrintMiniMini(&x, &y, tx, 0x42, TEXT_COLOR_BLACK, 0);
 		}
 	}
 	if (state < 2 && player::pl.cards_left > 0)
