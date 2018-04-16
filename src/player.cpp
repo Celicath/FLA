@@ -6,6 +6,10 @@ player player::pl;
 
 player::player()
 {
+}
+
+void player::init_player()
+{
 	memset(upgrades, 0, sizeof(upgrades));
 	upgrades[3] = 1;
 	upgrades[4] = 1;
@@ -37,6 +41,7 @@ void player::set_deck()
 			deck[num_spells++] = i;
 		}
 	}
+	cards_left = num_spells;
 }
 
 void player::show_stats()
@@ -53,16 +58,21 @@ void player::show_stats()
 	PrintMiniMini(&x, &y, buffer, 0x52, TEXT_COLOR_BLACK, 0);
 	x += 6;
 	PrintMiniMini(&x, &y, "HP ", 0x42, TEXT_COLOR_BLACK, 0);
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "%d", character::bchs[0].hp);
 	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].hp <= character::bchs[0].mhp / 3 ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "/ %d Atk ", character::bchs[0].mhp);
 	PrintMiniMini(&x, &y, buffer, 0x42, TEXT_COLOR_BLACK, 0);
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "%d", character::bchs[0].attack);
 	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].attack_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
 	PrintMiniMini(&x, &y, " Def ", 0x42, TEXT_COLOR_BLACK, 0);
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "%d", character::bchs[0].defense);
 	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].defense_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
 	PrintMiniMini(&x, &y, " Spd ", 0x42, TEXT_COLOR_BLACK, 0);
+	memset(buffer, 0, sizeof(buffer));
 	sprintf(buffer, "%d", character::bchs[0].speed);
 	PrintMiniMini(&x, &y, buffer, 0x42, character::bchs[0].speed_temp ? TEXT_COLOR_RED : TEXT_COLOR_BLACK, 0);
 	if (num_spells > 0)

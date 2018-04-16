@@ -8,6 +8,7 @@
 #include "game_control.h"
 #include "utils.h"
 
+#include "player.h"
 #include "screen_battle.h"
 #include "screen_upgrade.h"
 #include "screen_dialog.h"
@@ -77,6 +78,8 @@ void game_control::start()
 	prev_time = RTC_GetTicks();
 	clock = 0;
 	last_draw = 0;
+
+	player::pl.init_player();
 
 	for (int level = 0; level <= 20; level++)
 	{

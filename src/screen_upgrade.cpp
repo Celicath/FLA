@@ -179,7 +179,7 @@ int screen_upgrade::routine()
 			}
 		}
 	}
-	DmaWaitNext();
-	wait_for_key(KEY_CTRL_EXE);
+	for (int i = 0; i <= 2; i++)
+		gc.update(i == 2);
 	return 1;
 }

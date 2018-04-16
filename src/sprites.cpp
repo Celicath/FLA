@@ -81,10 +81,10 @@ void CopySpriteAlpha(const color_t* sprite, int x, int y, int width, int height,
 			{
 				color_t c = *sprite;
 				if ((mode == 1) && c != 0) c = 0xffff - c;
-				*VRAM =
+				*VRAM = (color_t) (
 					((((c >> 11) * alpha + (*VRAM >> 11) * (32 - alpha)) / 32) << 11) +
 					(((((c >> 5) & 0x3f) * alpha + ((*VRAM >> 5) & 0x3f) * (32 - alpha)) / 32) << 5) +
-					(((c & 0x1f) * alpha + (*VRAM & 0x1f) * (32 - alpha)) / 32);
+					(((c & 0x1f) * alpha + (*VRAM & 0x1f) * (32 - alpha)) / 32));
 			}
 			VRAM++;
 			sprite++;

@@ -187,7 +187,7 @@ void screen_battle::draw()
 		int sy = prev_drawing_frame < 32 ? 163 + (32 - prev_drawing_frame) * (32 - prev_drawing_frame) / 32 : 163;
 		BdispH_AreaFill(sx - 16, sx + 15, sy - 16, sy + 17, COLOR_WHITE);
 	}
-	if (state == 5)
+	else if (state == 5)
 	{
 		draw_spell_effect(prev_drawing_frame, false);
 	}
@@ -297,8 +297,7 @@ void screen_battle::draw()
 		else CopySprite(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32);
 		prev_drawing_frame = drawing_frame;
 	}
-
-	if (state == 5)
+	else if (state == 5)
 	{
 		draw_spell_effect(drawing_frame, true);
 		prev_drawing_frame = drawing_frame;
@@ -320,11 +319,12 @@ void screen_battle::redraw()
 int screen_battle::routine()
 {
 	state = 2;
-	gc.update();
 	player::pl.show_stats();
-	DmaWaitNext();
-	MsgBoxPush(3);
+	prepare_spells();
+	gc.update(true);
 	{
+		DmaWaitNext();
+		MsgBoxPush(3);
 		char buffer[20];
 		int x = 0;
 		int y = 95;
@@ -336,7 +336,10 @@ int screen_battle::routine()
 		MsgBoxPop();
 	}
 	state = 0;
-	prepare_spells();
+
+	// why do I need this to keep from crash?
+	for (int i = 0; i < 7; i++)
+		gc.update();
 
 	for (;;)
 	{
@@ -478,15 +481,15 @@ int screen_battle::routine()
 				gc.update();
 
 			// enemies attack
-			for (int j = 1; j < 10; j++)
+			for (int i = 1; i < 10; i++)
 			{
-				if (character::bchs[j].mhp > 0)
+				if (character::bchs[i].mhp > 0)
 				{
-					character::bchs[j].target_mode = 1;
+					character::bchs[i].target_mode = 1;
 					for (int j = 1; j < 18; j++)
 						gc.update();
-					character::bchs[j].target_mode = -1;
-					enemy_attack(j);
+					character::bchs[i].target_mode = -1;
+					enemy_attack(i);
 					for (int j = 1; j < 9; j++)
 						gc.update();
 				}
@@ -515,6 +518,7 @@ int screen_battle::routine()
 	}
 
 	state = 0;
+	gc.update(true);
 	DmaWaitNext();
 	MsgBoxPush(4);
 	PrintCXY(120, 42, "You Win!", TEXT_MODE_NORMAL, -1, COLOR_BLACK, COLOR_WHITE, 1, 0);
@@ -571,7 +575,7 @@ void screen_battle::attack_jump(int target)
 			if (f <= 40)
 			{
 				character::bchs[0].x = (px * (40 - f) + nx * f) / 40;
-				character::bchs[0].y = (py * (40 - f) + ny * f + (f - 20) * (f - 20) * 7 - 2800) / 40;
+				character::bchs[0].y = (py * (40 - f) + ny * f + (f - 20) * (f - 20) * 6 - 2400) / 40;
 			}
 			else if (action_command != 0) break;
 
@@ -593,7 +597,7 @@ void screen_battle::attack_jump(int target)
 	for (int f = 0; f <= 40; f++)
 	{
 		character::bchs[0].x = (px * (40 - f) + x1 * f) / 40;
-		character::bchs[0].y = (py * (40 - f) + y1 * f + (f - 20) * (f - 20) * 7 - 2800) / 40;
+		character::bchs[0].y = (py * (40 - f) + y1 * f + (f - 20) * (f - 20) * 6 - 2400) / 40;
 		gc.update();
 	}
 

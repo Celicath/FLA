@@ -13,7 +13,7 @@ const char enemies[][20]
 	"Shloom",
 	"Red Shloom",
 	"Blue Shloom",
-	"Big Shloom",
+	"Big Shloom"
 };
 
 void screen_test::load(int level_)
