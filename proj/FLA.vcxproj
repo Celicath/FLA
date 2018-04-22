@@ -55,11 +55,13 @@
     </ClCompile>
     <ClCompile Include="..\src\character.cpp" />
     <ClCompile Include="..\src\display_helper.cpp" />
+    <ClCompile Include="..\src\effect.cpp" />
     <ClCompile Include="..\src\keys.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\platform.cpp" />
     <ClCompile Include="..\src\player.cpp" />
     <ClCompile Include="..\src\screen_battle.cpp" />
     <ClCompile Include="..\src\screen_dialog.cpp" />
@@ -85,6 +87,7 @@
     </ClInclude>
     <ClInclude Include="..\src\character.h" />
     <ClInclude Include="..\src\display_helper.h" />
+    <ClInclude Include="..\src\effect.h" />
     <ClInclude Include="..\src\keys.h" />
     <ClInclude Include="..\src\platform.h" />
     <ClInclude Include="..\src\player.h" />

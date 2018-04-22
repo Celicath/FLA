@@ -72,6 +72,12 @@
     <ClCompile Include="..\src\screen_test.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\effect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\prizm-winsim\prizmsim.h">
@@ -118,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="..\..\prizm-winsim\prizmfont.h">
       <Filter>prizm-winsim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\effect.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

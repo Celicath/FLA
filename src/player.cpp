@@ -22,7 +22,7 @@ void player::set_character(character& ch)
 	for (int i = 0; i < 100; i++)
 		ch.level += upgrades[i];
 	ch.hp = ch.mhp = 18 + ch.level * 2;
-	ch.attack = 4 + upgrades[0];
+	ch.attack = 2 + upgrades[0];
 	ch.defense = 0 + upgrades[1];
 	ch.speed = 2 + upgrades[2];
 	ch.hpbar = HPBAR_INTERVALS;

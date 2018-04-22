@@ -14,7 +14,9 @@
 screen_battle::screen_battle()
 {
 	for (int i = 0; i < 10; i++)
-		effects[i][0] = 0;
+	{
+		effects[i] = effect("", 0, 0, 0, 0);
+	}
 
 	memset(character::bchs, 0, sizeof(character::bchs));
 
@@ -70,8 +72,8 @@ void screen_battle::update()
 {
 	// update effects
 	for (int i = 0; i < 10; i++)
-		if (effects[i][0])
-			effects[i][3]--;
+		if (effects[i].text[0])
+			effects[i].frame--;
 
 	// update battle characters
 	for (int i = 0; i < 10; i++)
@@ -98,6 +100,7 @@ void screen_battle::update()
 }
 
 const char messages[][12] = {
+	"",
 	"NICE",
 	"GREAT",
 	"EXCELLENT",
@@ -105,47 +108,60 @@ const char messages[][12] = {
 	"EVADE"
 };
 
-void draw_effect(int effect[], bool draw_mode)
-{
-	char buffer[20];
-	memset(buffer, 0, sizeof(buffer));
-	if (effect[0] > 0)
-		sprintf(buffer, "%d", effect[0]);
-	else sprintf(buffer, messages[-effect[0] - 1], effect[0]);
-	int x = effect[1] - strlen(buffer) * 5;
-	int y = effect[2] - 20 + (draw_mode ? effect[3] * effect[3] : effect[4] * effect[4]) / 100;
-	PrintMiniMini(&x, &y, buffer, 0x52, draw_mode ? effect[5] : TEXT_COLOR_WHITE, 0);
-	effect[4] = effect[3];
-}
-
-void screen_battle::draw_spell_effect(int frame, bool draw_mode)
+void screen_battle::draw_spell_effect(int spell_no, int frame, bool draw_mode)
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
-	for (int k = 0; k < 7; k++)
-	{
-		// test: fireball animation
-		int t = frame - 6 + k;
-		if (t < 0 || t > 67) continue;
-		if (t > 64) t = 64;
-		int sx = (character::bchs[0].x * (64 - t) + character::bchs[target_no].x * t) / 64 - 2;
-		int sy = ((character::bchs[0].y - 20) * (64 - t) + (character::bchs[target_no].y - 5) * t) / 64 + ((t - 32) * (t - 32) - 1024) / 32;
 
-		if (draw_mode)
+	switch (spell_no)
+	{
+	case 5:
+		// fireball
+		for (int k = 0; k < 7; k++)
 		{
-			int ratio = k * 7 + 11;
-			for (int i = -7; i <= 7; i++)
+			int t = frame - 6 + k;
+			if (t < 0 || t > 67) continue;
+			if (t > 64) t = 64;
+			int sx = (character::bchs[0].x * (64 - t) + character::bchs[target_no].x * t) / 64 - 2;
+			int sy = ((character::bchs[0].y - 20) * (64 - t) + (character::bchs[target_no].y - 5) * t) / 64 + ((t - 32) * (t - 32) - 1024) / 32;
+
+			if (draw_mode)
 			{
-				for (int j = -7; j <= 7; j++)
-				{
-					if (i * i + j * j <= ratio)
-					{
-						VRAM[(sy + j) * LCD_WIDTH_PX + (sx + i)] = 0xF800 + (ratio - i * i - j * j) * 0x20;
-					}
-				}
+				int ratio = k * 7 + 11;
+				for (int i = -7; i <= 7; i++)
+					for (int j = -7; j <= 7; j++)
+						if (i * i + j * j <= ratio)
+							VRAM[(sy + j) * LCD_WIDTH_PX + (sx + i)] = 0xF800 + (ratio - i * i - j * j) * 0x20;
 			}
+			else BdispH_AreaFill(sx - 7, sx + 7, sy - 7, sy + 7, COLOR_WHITE);
 		}
-		else
-			BdispH_AreaFill(sx - 7, sx + 7, sy - 7, sy + 7, COLOR_WHITE);
+		break;
+	case 6:
+		// ice spear
+		{
+			if (frame >= 67) break;
+			int t = frame > 64 ? 64 : frame;
+			int sx = (character::bchs[0].x * (262144 - t * t * t) + (character::bchs[target_no].x - 5) * t * t * t) / 262144;
+			int sy = ((character::bchs[0].y - 20) * (64 - t) + (character::bchs[target_no].y - 5) * t) / 64 + ((t - 32) * (t - 32) - 1024) / 64;
+
+			if (draw_mode)
+			{
+				for (int i = 1; i < 31; i++)
+					for (int j = 1; j < 31; j++)
+					{
+						if (i - j > 7 || j * 2 - i > 26) continue;
+						color_t c = sprite_icons[6][(31 - j) * 32 + i];
+						if (c != 0xE7DF)
+							VRAM[(sy + j - 16) * LCD_WIDTH_PX + (sx + i - 16)] = c;
+					}
+			}
+			else BdispH_AreaFill(sx - 16, sx + 15, sy - 16, sy + 15, COLOR_WHITE);
+		}
+		break;
+	case 7:
+		// wind blast
+		{
+			if (frame >= 67) break;
+		}
 	}
 }
 
@@ -156,10 +172,7 @@ void screen_battle::draw()
 	draw_icons(false);
 
 	for (int i = 0; i < 10; i++)
-		if (effects[i][0])
-		{
-			draw_effect(effects[i], false);
-		}
+		effects[i].draw(false);
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -189,7 +202,7 @@ void screen_battle::draw()
 	}
 	else if (state == 5)
 	{
-		draw_spell_effect(prev_drawing_frame, false);
+		draw_spell_effect(command_no, prev_drawing_frame, false);
 	}
 
 	color_t c = COLOR_BLACK;
@@ -275,15 +288,7 @@ void screen_battle::draw()
 	}
 
 	for (int i = 0; i < 10; i++)
-		if (effects[i][0])
-		{
-			if (effects[i][3] < 0)
-				effects[i][0] = 0;
-			else
-			{
-				draw_effect(effects[i], true);
-			}
-		}
+		effects[i].draw(true);
 	if (state != 2)
 		player::pl.show_stats();
 
@@ -299,7 +304,7 @@ void screen_battle::draw()
 	}
 	else if (state == 5)
 	{
-		draw_spell_effect(drawing_frame, true);
+		draw_spell_effect(command_no, drawing_frame, true);
 		prev_drawing_frame = drawing_frame;
 	}
 }
@@ -325,7 +330,6 @@ int screen_battle::routine()
 	{
 		DmaWaitNext();
 		MsgBoxPush(3);
-		char buffer[20];
 		int x = 0;
 		int y = 95;
 		sprintf(buffer, "- STAGE %d -", stage);
@@ -337,7 +341,7 @@ int screen_battle::routine()
 	}
 	state = 0;
 
-	// why do I need this to keep from crash?
+	// why do I need this to prevent crashing?
 	for (int i = 0; i < 7; i++)
 		gc.update();
 
@@ -433,7 +437,11 @@ int screen_battle::routine()
 			{
 				if (character::bchs[i].mhp > 0)
 				{
-					int mov = (int)(Q_rsqrt((float)character::bchs[0].speed / character::bchs[i].speed) * 24);
+					int mov =
+						character::bchs[i].speed == 0 ? 1 :
+						character::bchs[0].speed == 0 ? 48 :
+						(int)(Q_rsqrt((float)character::bchs[0].speed / character::bchs[i].speed) * 24);
+					if (mov > 48) mov = 48;
 
 					int min = character::bchs[character::bchs[i].prev].target_pos + 32;
 					min = MAX(min, character::bchs[i].x - mov);
@@ -486,10 +494,23 @@ int screen_battle::routine()
 				if (character::bchs[i].mhp > 0)
 				{
 					character::bchs[i].target_mode = 1;
-					for (int j = 1; j < 18; j++)
+
+					bool double_attack =
+						!character::bchs[i].speed ? 0 :
+						ran() % (2 * character::bchs[i].speed) >= character::bchs[i].speed + character::bchs[0].speed;
+					bool skip = 
+						!character::bchs[0].speed ? 0 :
+						ran() % (2 * character::bchs[0].speed) >= character::bchs[0].speed + character::bchs[i].speed;
+
+					if (skip)
+						add_effect("Attack skipped", character::bchs[i].x, character::bchs[i].y - 17, COLOR_BLACK);
+					else if (double_attack)
+						add_effect("Double attack", character::bchs[i].x, character::bchs[i].y - 17, COLOR_BLACK);
+					for (int j = 1; j < (skip || double_attack ? 50 : 18); j++)
 						gc.update();
 					character::bchs[i].target_mode = -1;
-					enemy_attack(i);
+					if (!skip)
+						enemy_attack(i, double_attack);
 					for (int j = 1; j < 9; j++)
 						gc.update();
 				}
@@ -588,7 +609,7 @@ void screen_battle::attack_jump(int target)
 		}
 		px = nx;
 		py = ny;
-		damage(target, character::bchs[0].attack, action_command == 1 ? -a - 1 : 0);
+		damage(target, character::bchs[0].attack, action_command == 1 ? a + 1 : 0);
 		if (action_command != 1)
 			break;
 	}
@@ -659,7 +680,7 @@ void screen_battle::attack_dive(int target)
 	px = nx;
 	py = ny;
 	character::bchs[0].rotation = 0;
-	damage(target, action_command == 1 ? character::bchs[0].attack * 3 / 2 : character::bchs[0].attack, action_command == 1 ? -1 : 0);
+	damage(target, action_command == 1 ? character::bchs[0].attack * 3 / 2 : character::bchs[0].attack, action_command == 1 ? 1 : 0);
 
 	int restd = action_command == 1 ? 40 : 20;
 
@@ -698,6 +719,8 @@ void screen_battle::attack_dive(int target)
 				int diff = character::bchs[target].x + (character::bchs[target].width + character::bchs[target2].width) / 2 - character::bchs[target2].x + 1;
 				if (diff >= 0)
 				{
+					for (int i = 0; i < 3; i++)
+						gc.update();
 					restd = (restd + diff) * 2 / 3;
 					if (restd < 10) restd = 10;
 
@@ -740,6 +763,8 @@ void screen_battle::play_spell(int spell_no, int target)
 
 	character::bchs[target].target_mode = -1;
 
+	command_no = spell_no;
+
 	if (spell_no == 3)
 	{
 		character::bchs[target].attack++;
@@ -749,10 +774,9 @@ void screen_battle::play_spell(int spell_no, int target)
 	{
 		heal(target, 10);
 	}
-	else
+	else if (spell_no == 5)
 	{
 		state = 5;
-		// test: fireball
 		prev_drawing_frame = 0;
 		for (int i = 0; i <= 75; i++)
 		{
@@ -760,6 +784,30 @@ void screen_battle::play_spell(int spell_no, int target)
 			gc.update(i == 75);
 		}
 		damage(target, 6, 0);
+	}
+	else /*if (spell_no == 6)*/
+	{
+		command_no = 6;
+		state = 5;
+		prev_drawing_frame = 0;
+		for (int i = 0; i <= 70; i++)
+		{
+			drawing_frame = i;
+			gc.update(i == 70);
+		}
+		damage(target, 4, 0);
+
+		if (character::bchs[target].speed > 0)
+		{
+			for (int i = 0; i < 24; i++)
+				gc.update();
+			memset(buffer, 0, sizeof(buffer));
+			int sd = character::bchs[target].speed / 4;
+			if (sd == 0) sd = 1;
+			sprintf(buffer, "Speed-%d", sd);
+			character::bchs[target].speed -= sd;
+			add_effect(buffer, character::bchs[target].x - 5, character::bchs[target].y - 15, TEXT_COLOR_BLACK);
+		}
 	}
 
 	for (int i = 0; i < 10; i++)
@@ -775,17 +823,18 @@ int screen_battle::damage(int target, int damage, int message)
 	if (damage < 0) damage = 0;
 	character::bchs[target].hp -= damage;
 	if (character::bchs[target].hp < 0) character::bchs[target].hp = 0;
-	if (message < 0)
-		add_effect(message, character::bchs[target].x - 7, character::bchs[target].y - 27);
-	return add_effect(damage, character::bchs[target].x - 7, character::bchs[target].y - 15, TEXT_COLOR_RED);
+	if (message > 0)
+		add_effect(messages[message], character::bchs[target].x - 5, character::bchs[target].y - 27, TEXT_COLOR_BLACK);
+	return add_effect(damage, character::bchs[target].x - 5, character::bchs[target].y - 15, TEXT_COLOR_RED);
 }
 
 int screen_battle::heal(int target, int amount)
 {
 	character::bchs[target].hpbar_duration = 48;
 	character::bchs[target].hp += amount;
-	if (character::bchs[target].hp > character::bchs[target].mhp) character::bchs[target].hp = character::bchs[target].mhp;
-	return add_effect(amount, character::bchs[target].x - 7, character::bchs[target].y - 15, TEXT_COLOR_BLUE);
+	if (character::bchs[target].hp > character::bchs[target].mhp)
+		character::bchs[target].hp = character::bchs[target].mhp;
+	return add_effect(amount, character::bchs[target].x - 5, character::bchs[target].y - 15, TEXT_COLOR_BLUE);
 }
 
 void screen_battle::prepare_spells()
@@ -885,22 +934,24 @@ void screen_battle::draw_icons(bool always_draw)
 	}
 }
 
-int screen_battle::add_effect(int type, int x, int y, int color)
+int screen_battle::add_effect(const char* text, int x, int y, int color)
 {
 	for (int i = 0; i < 10; i++)
 	{
-		if (!effects[i][0])
+		if (!effects[i].text[0])
 		{
-			effects[i][0] = type;
-			effects[i][1] = x;
-			effects[i][2] = y;
-			effects[i][3] = 50;
-			effects[i][4] = 50;
-			effects[i][5] = color;
+			effects[i] = effect(text, x, y, 50, color);
 			return i;
 		}
 	}
 	return -1;
+}
+
+int screen_battle::add_effect(int number, int x, int y, int color)
+{
+	memset(buffer, 0, sizeof(buffer));
+	sprintf(buffer, "%d", number);
+	return add_effect(buffer, x, y, color);
 }
 
 bool screen_battle::targetable(int target, int skill_no)
@@ -958,7 +1009,7 @@ void screen_battle::die(int target)
 		character::bchs[character::bchs[target].next].prev = character::bchs[target].prev;
 }
 
-void screen_battle::enemy_attack(int attacker)
+void screen_battle::enemy_attack(int attacker, bool double_attack)
 {
 	int x1 = character::bchs[attacker].x;
 	int y1 = character::bchs[attacker].y;
@@ -970,12 +1021,12 @@ void screen_battle::enemy_attack(int attacker)
 	for (int i = 0; i < 6; i++)
 		gc.update();
 
-	for (int a = 0; a < 1; a++)
+	for (int a = 0; a < 1 + double_attack; a++)
 	{
 		// 0=Initial -=failed +=success
 		int action_command = 0;
 
-		int range = 10 - a * 2;
+		int range = 8 + a * 2;
 
 		for (int f = 0; f < 40 + range / 2; f++)
 		{
@@ -983,9 +1034,9 @@ void screen_battle::enemy_attack(int attacker)
 			{
 				character::bchs[attacker].x = (px * (40 - f) + nx * f) / 40;
 				character::bchs[attacker].y = (py * (40 - f) + ny * f + (f - 20) * (f - 20) * 6 - 2400) / 40;
-				if (f == 13)
+				if (a == 0 && f == 13)
 					character::bchs[attacker].rotation = 3;
-				else if (f == 26)
+				else if (a == 0 && f == 26)
 					character::bchs[attacker].rotation = 2;
 			}
 			else if (action_command != 0) break;
@@ -994,7 +1045,14 @@ void screen_battle::enemy_attack(int attacker)
 			{
 				if (f < 40 - (range + 1) / 2)
 					action_command = (f < 24 ? 0 : -1);
-				else action_command = 1;
+				else
+				{
+					int r = ran() % (character::bchs[attacker].attack + 1);
+					if (f == 40 && r <= character::bchs[0].defense * 2 ||
+						(f == 39 || f == 41) && r < character::bchs[0].defense * 2 - character::bchs[attacker].attack)
+						action_command = 2;
+					else action_command = 1;
+				}
 			}
 			if ((keys.cancel) && action_command == 0)
 			{
@@ -1004,9 +1062,15 @@ void screen_battle::enemy_attack(int attacker)
 			}
 			gc.update();
 		}
-		damage(0, character::bchs[attacker].attack - (action_command > 0), action_command > 0 ? -3 - action_command : 0);
-		if (action_command == 3)
+		px = nx;
+		py = ny;
+		if (action_command == 2)
 		{
+			add_effect(messages[5], character::bchs[0].x - 5, character::bchs[0].y - 20, TEXT_COLOR_BLACK);
+		}
+		else if (action_command == 3)
+		{
+			// unused "Counter"
 			character::bchs[attacker].rotation = 0;
 			int ep = damage(attacker, (character::bchs[0].attack + character::bchs[0].defense) / 2, 0);
 			for (int i = 0; i < 20; i++)
@@ -1015,12 +1079,13 @@ void screen_battle::enemy_attack(int attacker)
 				{
 					character::bchs[attacker].x += 8 - i;
 					character::bchs[attacker].y--;
-					effects[ep][1] += 8 - i;
+					effects[ep].x += 8 - i;
 				}
 				gc.update();
 			}
 			break;
 		}
+		else damage(0, character::bchs[attacker].attack - (action_command > 0), action_command > 0 ? 4 : 0);
 	}
 
 	trigger_deaths();
