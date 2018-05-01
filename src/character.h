@@ -44,7 +44,7 @@ public:
 
 	character() : target_mode(0) { };
 	character(int no);
-	void draw_target_border(color_t color, bool draw_name = true);
+	void draw_target_border(color_t color, int draw_name = 1);
 	void set_image(const color_t* image_);
 	const char* get_name() const;
 

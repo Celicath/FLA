@@ -108,7 +108,7 @@ const char messages[][12] = {
 	"EVADE"
 };
 
-void screen_battle::draw_spell_effect(int spell_no, int frame, bool draw_mode)
+void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 {
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 
@@ -126,11 +126,11 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, bool draw_mode)
 
 			if (draw_mode)
 			{
-				int ratio = k * 7 + 11;
+				int radius = k * 7 + 11;
 				for (int i = -7; i <= 7; i++)
 					for (int j = -7; j <= 7; j++)
-						if (i * i + j * j <= ratio)
-							VRAM[(sy + j) * LCD_WIDTH_PX + (sx + i)] = 0xF800 + (ratio - i * i - j * j) * 0x20;
+						if (i * i + j * j <= radius)
+							VRAM[(sy + j) * LCD_WIDTH_PX + (sx + i)] = 0xF800 + (radius - i * i - j * j) * 0x20;
 			}
 			else BdispH_AreaFill(sx - 7, sx + 7, sy - 7, sy + 7, COLOR_WHITE);
 		}
@@ -860,7 +860,7 @@ void screen_battle::prepare_spells()
 	}
 }
 
-void screen_battle::draw_icons(bool always_draw)
+void screen_battle::draw_icons(int always_draw)
 {
 	static int prev_command_no = -1;
 	static int prev_state = -1;
@@ -1009,7 +1009,7 @@ void screen_battle::die(int target)
 		character::bchs[character::bchs[target].next].prev = character::bchs[target].prev;
 }
 
-void screen_battle::enemy_attack(int attacker, bool double_attack)
+void screen_battle::enemy_attack(int attacker, int double_attack)
 {
 	int x1 = character::bchs[attacker].x;
 	int y1 = character::bchs[attacker].y;

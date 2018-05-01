@@ -11,16 +11,16 @@ character::character(int no)
 	switch (no)
 	{
 	case 1:
-		set_stat(sprite_enemy1, no, 23, 25, 0, 6, 3, 0, 1);
+		set_stat(sprite_enemy1, no, 23, 25, 0, 6, 2, 0, 1);
 		break;
 	case 2:
-		set_stat(sprite_enemy1, no, 23, 25, 0, 10, 4, 0, 2);
+		set_stat(sprite_enemy1, no, 23, 25, 0, 10, 2, 0, 2);
 		break;
 	case 3:
-		set_stat(sprite_enemy1, no, 23, 25, 0, 15, 3, 0, 2);
+		set_stat(sprite_enemy1, no, 23, 25, 0, 15, 2, 0, 2);
 		break;
 	case 4:
-		set_stat(sprite_enemy1, no, 23, 25, 1, 20, 3, 0, 4);
+		set_stat(sprite_enemy1, no, 23, 25, 1, 20, 2, 0, 2);
 		break;
 	}
 	prev = -1;
@@ -44,7 +44,7 @@ void character::set_stat(const color_t* image_, int no_, int width_, int height_
 	rotation = 0;
 }
 
-void character::draw_target_border(color_t color, bool draw_name)
+void character::draw_target_border(color_t color, int draw_name)
 {
 	::draw_target_border(x, y, width, height, color);
 	if (draw_name)

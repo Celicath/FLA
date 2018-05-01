@@ -5,7 +5,7 @@ class screen;
 class game_control
 {
 public:
-	screen* screens[10];
+	screen* screens[8];
 	screen* active_screen;
 	int clock;
 	int prev_time;
@@ -13,7 +13,7 @@ public:
 	void start();
 	void redraw();
 	void pause();
-	void update(bool always_draw = false);
+	void update(int always_draw = 0);
 	void draw();
 	void set_active_screen(screen* screen);
 

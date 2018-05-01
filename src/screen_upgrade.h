@@ -6,8 +6,7 @@ class upgrade
 {
 public:
 	int no;
-	const color_t* image;
-	bool selected;
+	int selected;
 
 	upgrade() { }
 	upgrade(int no_);
@@ -30,11 +29,11 @@ private:
 	void draw_desc();
 	int selected_no;
 
-	bool need_redraw;
+	int need_redraw;
 
 	int rest;
 	int num_options;
-	upgrade ups[10];
+	upgrade ups[8];
 };
 
 extern const char upgrade_name[][16];

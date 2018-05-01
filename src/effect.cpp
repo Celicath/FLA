@@ -13,7 +13,7 @@ effect::effect(const char* text_, int x, int y, int frame, int color)
 	}
 }
 
-void effect::draw(bool draw_mode)
+void effect::draw(int draw_mode)
 {
 	if (text[0])
 	{

@@ -31,8 +31,8 @@ private:
 
 	void prepare_spells();
 
-	void draw_icons(bool draw_icons);
-	void draw_spell_effect(int spell_no, int frame, bool draw_mode);
+	void draw_icons(int always_draw);
+	void draw_spell_effect(int spell_no, int frame, int draw_mode);
 	int add_effect(const char* text, int x, int y, int color);
 	int add_effect(int number, int x, int y, int color);
 
@@ -52,5 +52,5 @@ private:
 	void play_spell(int spell_no, int target);
 
 	// enemy attack
-	void enemy_attack(int attacker, bool double_attack);
+	void enemy_attack(int attacker, int double_attack);
 };

@@ -27,7 +27,6 @@ struct keys_type {
 	bool right_hold;
 	bool up_hold;
 	bool down_hold;
-	bool padding[2];
 };
 
 extern keys_type keys;

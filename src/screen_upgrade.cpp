@@ -60,14 +60,14 @@ void upgrade::get_description(char* buffer, int no)
 	switch(no)
 	{
 	case 0: case 1: case 2:
-		sprintf(buffer, "Increase %s by 1.", no == 0 ? "Attack" : no == 1 ? "Deffense" : "Speed");
+		sprintf(buffer, "Increase %s by 1.", no == 0 ? "Attack" : no == 1 ? "Defense" : "Speed");
 		break;
 	case 3: sprintf(buffer, "Increase your attack by 1 this turn."); break;
 	case 4: sprintf(buffer, "Restore 10 HP."); break;
 	case 5:	sprintf(buffer, "6 damage to an enemy."); break;
 	case 6: sprintf(buffer, "4 damage + slow to an enemy."); break;
-	case 7: sprintf(buffer, "3 damage + knockback to all enemies."); break;
-	case 8: sprintf(buffer, "4 damage to Area(large)."); break;
+	case 7: sprintf(buffer, "3 damage + knockback to an enemy."); break;
+	case 8: sprintf(buffer, "3 damage to all enemies."); break;
 	}
 }
 
@@ -79,7 +79,7 @@ void screen_upgrade::shuffle()
 {
 	for (int i = 0; i < num_options; i++)
 	{
-		int k = ran() % 7 + 2;
+		int k = ran() % 4 + 5;
 		if (k < 5) k -= 2;
 		ups[i] = upgrade(k);
 		for (int j = 0; j < i; j++)
@@ -132,7 +132,7 @@ void screen_upgrade::draw_desc()
 	int s = 20;
 	int t = 135;
 
-	PrintMini(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	Bdisp_MMPrintRef(&s, &t, name, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
 
 	s = 26;
 	t = 160;

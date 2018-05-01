@@ -12,6 +12,7 @@
 #include "screen_battle.h"
 #include "screen_upgrade.h"
 #include "screen_dialog.h"
+#include "screen_test.h"
 
 game_control gc;
 
@@ -57,15 +58,14 @@ void game_control::set_active_screen(screen* screen)
 // start game_control
 void game_control::start()
 {
-	color_t* VRAM = (color_t*)GetVRAMAddress();
-
 	sran(RTC_GetTicks());
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 8; i++)
 		screens[i] = nullptr;
 	screens[0] = new screen_upgrade;
 	screens[1] = new screen_battle;
-	screens[2] = new screen_dialog;
+//	screens[2] = new screen_dialog;
+	screens[2] = new screen_test;
 	int next_screen = 1;
 	active_screen = screens[next_screen];
 
@@ -105,7 +105,7 @@ void game_control::start()
 }
 
 int lag = 0;
-void game_control::update(bool always_draw)
+void game_control::update(int always_draw)
 {
 	for (;;)
 	{

@@ -17,8 +17,7 @@ private:
 	int y;
 	int pos;
 	int pos_drawn;
-	bool going;
-	bool padding[3];
+	int going;
 
 	screen* parent;
 };
