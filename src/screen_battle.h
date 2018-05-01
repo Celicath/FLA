@@ -16,7 +16,7 @@ public:
 private:
 	int stage;
 	int command_no;
-	int target_no;
+	int target_no;	// 10 = ALL
 	int state;
 	int target_timer;
 
@@ -45,6 +45,8 @@ private:
 	void trigger_deaths();
 	void wait_for_deaths();
 	void die(int target);
+	bool push(int& target, int& dist, int d);
+	void set_target_mode(int target_no, int target_mode);
 
 	// attacks
 	void attack_jump(int target);

@@ -28,50 +28,52 @@ void screen_test::update()
 {
 }
 
+int frame = 0;
+
 void screen_test::draw()
 {
-	/*
 	color_t* VRAM = (color_t*)GetVRAMAddress();
 
-	int sx = 100;
-	int sy = 100;
-	int radius = 160;
-	int inner_radius = 50;
-	int outer_radius = 120;
+	int pos = frame % 72;
+	int t = pos > 64 ? 64 : pos;
+	int sx = (character::bchs[0].x * (4096 - t * t) + (character::bchs[1].x - 5) * t * t) / 4096;
+	int sy = ((character::bchs[0].y) * (64 - t) + (character::bchs[1].y) * t) / 64;
+
+	int radius = pos < 64 ? pos * 5 / 2 + 1 : (72 - pos) * 20;
+	int inner_radius = radius / 3;
+	int outer_radius = inner_radius * 2;
+
 	for (int i = -12; i <= 12; i++)
 		for (int j = -12; j <= 12; j++)
 		{
-			double c = cos(pos * 0.05);
-			double s = sin(pos * 0.05);
+			double c = cos(pos * 0.1);
+			double s = sin(pos * 0.1);
 			double x = i * c + j * s;
 			double y = i * s - j * c;
 
-			BdispH_SetPoint(sx + i, sy + j, 0x0000);
+			BdispH_SetPoint(sx + i, sy + j, 0xFFFF);
 			if (x * x + y * y * 6 < inner_radius)
 				BdispH_SetPoint(sx + i, sy + j, 0xFFFF);
 			else if (i * i + j * j <= radius)
 			{
 				int k1 = (int)(Q_rsqrt(1 / (1 - (double)(i * i + j * j) / radius)) * 32);
 				int k2 = 32 - (i * i + j * j) * 32 / radius;
-				BdispH_SetPointAlpha(sx + i, sy + j, (0x87EF - 0x0801 * (k2 / 5)), k1);
+				BdispH_SetPointAlpha(sx + i, sy + j, (0x47F8 - 0x0801 * (k2 / 5)), k1);
 			}
 			if (x * x * 20 + y * y <= outer_radius + 32)
-				BdispH_SetPointAlpha(sx + i, sy + j, 0xFFFF, 32 - abs((int)((x * x * 20 + y * y + 1 - outer_radius) * 32 / outer_radius)));
+				BdispH_SetPointAlpha(sx + i, sy + j, 0xFFFF, 32 - abs((int)((x * x * 20 + y * y - outer_radius) * 32 / outer_radius)));
 		}
 
 	player::pl.show_stats();
-	*/
-	redraw();
 }
 
 void screen_test::redraw()
 {
-	/*
 	Bdisp_AllClr_VRAM();
 //	BdispH_AreaFill(0, 383, 0, 191, COLOR_BLACK);
 	draw();
-	*/
 
+	/*
 	Bdisp_AllClr_VRAM();
 
 	char buffer[4];
@@ -95,20 +97,24 @@ void screen_test::redraw()
 	}
 hell:;
 	//player::pl.show_stats();
+	*/
 }
 
 int screen_test::routine()
 {
 	int key;
+	character::bchs[0].x = 70;
+	character::bchs[0].y = 128;
+	character::bchs[1].x = 225;
+	character::bchs[1].y = 130;
 	for (state = 0; state < 8; state++)
 	do
 	{
-		//player::pl.set_character(character::bchs[0]);
+		player::pl.set_character(character::bchs[0]);
 		gc.update(true);
-		DmaWaitNext();
 
-		GetKey(&key);
-	} while (key != KEY_CTRL_EXE);
+		frame++;
+	} while (true);
 
 	return 1;
 }

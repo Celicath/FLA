@@ -22,7 +22,7 @@ const char upgrade_name[][16] =
 	"Potion",
 	"Fireball",
 	"Ice Lance",
-	"Wind Blast",
+	"Aerial",
 	"Earthquake"
 };
 
@@ -66,7 +66,7 @@ void upgrade::get_description(char* buffer, int no)
 	case 4: sprintf(buffer, "Restore 10 HP."); break;
 	case 5:	sprintf(buffer, "6 damage to an enemy."); break;
 	case 6: sprintf(buffer, "4 damage + slow to an enemy."); break;
-	case 7: sprintf(buffer, "3 damage + knockback to an enemy."); break;
+	case 7: sprintf(buffer, "3 damage + knockback to front enemy."); break;
 	case 8: sprintf(buffer, "3 damage to all enemies."); break;
 	}
 }

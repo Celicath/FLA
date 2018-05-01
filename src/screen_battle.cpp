@@ -7,6 +7,7 @@
 #include "screen_upgrade.h"
 #include "player.h"
 #include "utils.h"
+#include <math.h>
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -158,9 +159,40 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 		}
 		break;
 	case 7:
-		// wind blast
+		// aerial
 		{
-			if (frame >= 67) break;
+			if (frame == 72) break;
+			int t = frame > 64 ? 64 : frame;
+			int sx = ((character::bchs[0].x + 5) * (262144 - t * t * t) + (character::bchs[target_no].x - 5) * t * t * t) / 262144;
+			int sy = ((character::bchs[0].y) * (64 - t) + (character::bchs[1].y) * t) / 64;
+
+			if (draw_mode)
+			{
+				int radius = frame < 64 ? frame * 5 / 2 + 1 : (72 - frame) * 20;
+				int inner_radius = radius / 3;
+				int outer_radius = inner_radius * 2;
+
+				for (int i = -12; i <= 12; i++)
+					for (int j = -12; j <= 12; j++)
+					{
+						double c = cos(frame * 0.1);
+						double s = sin(frame * 0.1);
+						double x = i * c + j * s;
+						double y = i * s - j * c;
+
+						if (x * x + y * y * 6 < inner_radius)
+							BdispH_SetPoint(sx + i, sy + j, 0xFFFF);
+						else if (i * i + j * j <= radius)
+						{
+							int k1 = (int)(Q_rsqrt(1 / (1 - (double)(i * i + j * j) / radius)) * 32);
+							int k2 = 32 - (i * i + j * j) * 32 / radius;
+							BdispH_SetPointAlpha(sx + i, sy + j, (0x47F8 - 0x0801 * (k2 / 5)), k1);
+						}
+						if (x * x * 20 + y * y <= outer_radius + 32)
+							BdispH_SetPointAlpha(sx + i, sy + j, 0xFFFF, 32 - abs((int)((x * x * 20 + y * y - outer_radius) * 32 / outer_radius)));
+					}
+			}
+			else BdispH_AreaFill(sx - 12, sx + 12, sy - 12, sy + 12, COLOR_WHITE);
 		}
 	}
 }
@@ -377,24 +409,30 @@ int screen_battle::routine()
 			if (keys.right)
 			{
 				target_timer = 0;
-				character::bchs[target_no].target_mode = -1;
-				do
+				if (target_no != 10)
 				{
-					target_no = character::bchs[target_no].next;
-					if (target_no == -1) target_no = 0;
-				} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+					set_target_mode(target_no, -1);
+					do
+					{
+						target_no = character::bchs[target_no].next;
+						if (target_no == -1) target_no = 0;
+					} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+				}
 			}
 			if (keys.left)
 			{
 				target_timer = 0;
-				character::bchs[target_no].target_mode = -1;
-				do
+				if (target_no != 10)
 				{
-					target_no--;
-					if (target_no < 0) target_no = 9;
-				} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+					set_target_mode(target_no, -1);
+					do
+					{
+						target_no--;
+						if (target_no < 0) target_no = 9;
+					} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+				}
 			}
-			character::bchs[target_no].target_mode = 1;
+			set_target_mode(target_no, 1);
 
 			if (keys.action)
 			{
@@ -413,7 +451,7 @@ int screen_battle::routine()
 					character::bchs[0].sp--;
 					play_spell(spells[command_no - 3], target_no);
 				}
-				character::bchs[target_no].target_mode = -1;
+				set_target_mode(target_no, -1);
 
 				if (command_no <= 2)
 					state = 3;
@@ -426,7 +464,7 @@ int screen_battle::routine()
 			else if (keys.cancel)
 			{
 				state = 0;
-				character::bchs[target_no].target_mode = -1;
+				set_target_mode(target_no, -1);
 			}
 			break;
 		case 3:
@@ -577,7 +615,7 @@ void screen_battle::attack_jump(int target)
 		character::bchs[0].set_image(sprite_flipp[sprite_walking[(i / 8) % 4]]);
 		gc.update();
 	}
-	character::bchs[target_no].target_mode = -1;
+	set_target_mode(target_no, -1);
 	character::bchs[0].set_image(sprite_flipp[0]);
 	px = character::bchs[0].x;
 	for (int i = 0; i < 6; i++)
@@ -644,7 +682,7 @@ void screen_battle::attack_dive(int target)
 		character::bchs[0].set_image(sprite_flipp[sprite_walking[(i / 8) % 4]]);
 		gc.update();
 	}
-	character::bchs[target_no].target_mode = -1;
+	set_target_mode(target_no, -1);
 	character::bchs[0].set_image(sprite_flipp[0]);
 	px = character::bchs[0].x;
 	for (int i = 0; i < 4; i++)
@@ -682,10 +720,9 @@ void screen_battle::attack_dive(int target)
 	character::bchs[0].rotation = 0;
 	damage(target, action_command == 1 ? character::bchs[0].attack * 3 / 2 : character::bchs[0].attack, action_command == 1 ? 1 : 0);
 
-	int restd = action_command == 1 ? 40 : 20;
-
 	int x2 = MAX(x1, px - 50);
 	bool push_done = false;
+	int restd = action_command == 1 ? 40 : 20;
 
 	for (int f = 0; ; f++)
 	{
@@ -706,39 +743,9 @@ void screen_battle::attack_dive(int target)
 			}
 		}
 
-		int target2 = character::bchs[target].next;
 		if (!push_done)
-		{
-			int nowd = MIN(1 + restd / 10, restd);
-			restd -= nowd;
-			character::bchs[target].x += nowd;
-			if (character::bchs[target].x > 360) character::bchs[target].x = 360;
+			push_done = push(target, restd, character::bchs[0].attack / 2);
 
-			if (target2 != -1)
-			{
-				int diff = character::bchs[target].x + (character::bchs[target].width + character::bchs[target2].width) / 2 - character::bchs[target2].x + 1;
-				if (diff >= 0)
-				{
-					for (int i = 0; i < 3; i++)
-						gc.update();
-					restd = (restd + diff) * 2 / 3;
-					if (restd < 10) restd = 10;
-
-					damage(target, character::bchs[0].attack / 2, 0);
-					trigger_deaths();
-					damage(target2, character::bchs[0].attack / 2, 0);
-
-					target = target2;
-					for (target2 = target + 1; target2 < 10; target2++)
-						if (character::bchs[target2].mhp > 0) break;
-				}
-			}
-			if (restd == 0)
-			{
-				trigger_deaths();
-				push_done = true;
-			}
-		}
 		if (f == 100 && push_done) break;
 		gc.update();
 	}
@@ -761,7 +768,7 @@ void screen_battle::play_spell(int spell_no, int target)
 	player::pl.cards_left--;
 	player::pl.deck[command_no - 3] = player::pl.deck[player::pl.cards_left];
 
-	character::bchs[target].target_mode = -1;
+	set_target_mode(target_no, -1);
 
 	command_no = spell_no;
 
@@ -785,9 +792,8 @@ void screen_battle::play_spell(int spell_no, int target)
 		}
 		damage(target, 6, 0);
 	}
-	else /*if (spell_no == 6)*/
+	else if (spell_no == 6)
 	{
-		command_no = 6;
 		state = 5;
 		prev_drawing_frame = 0;
 		for (int i = 0; i <= 70; i++)
@@ -808,6 +814,39 @@ void screen_battle::play_spell(int spell_no, int target)
 			character::bchs[target].speed -= sd;
 			add_effect(buffer, character::bchs[target].x - 5, character::bchs[target].y - 15, TEXT_COLOR_BLACK);
 		}
+	}
+	else if (spell_no == 7)
+	{
+		state = 5;
+		prev_drawing_frame = 0;
+		for (int i = 0; i <= 72; i++)
+		{
+			drawing_frame = i;
+			gc.update(i == 72);
+		}
+		damage(target, 3, 0);
+
+		for (int i = 0; i < 5; i++)
+			gc.update();
+
+		int dist = 60;
+		while (!push(target, dist, 2))
+			gc.update();
+	}
+	else if (spell_no == 8)
+	{
+		state = 5;
+		gc.update(true);
+		for (int i = 0; i < 80; i++)
+		{
+			for (int j = 1; j < 10; j++)
+				if (character::bchs[j].mhp > 0)
+					character::bchs[j].x += ((i + j) % 2) * 4 - 2;
+			gc.update(i == 79);
+		}
+		for (int j = 1; j < 10; j++)
+			if (character::bchs[j].mhp > 0)
+				damage(j, 3, 0);
 	}
 
 	for (int i = 0; i < 10; i++)
@@ -959,7 +998,7 @@ bool screen_battle::targetable(int target, int skill_no)
 	if (skill_no >= 2 && skill_no <= 4) return !target;
 	if (target < 1 || target >= 10) return false;
 	if (character::bchs[target].mhp <= 0) return false;
-	if (skill_no == 1)
+	if (skill_no == 1 || skill_no == 7)
 		return target == character::bchs[0].next;
 	return true;
 }
@@ -967,6 +1006,11 @@ bool screen_battle::targetable(int target, int skill_no)
 void screen_battle::find_target(int skill_no)
 {
 	target_timer = 0;
+	if (skill_no == 8)
+	{
+		target_no = 10;
+		return;
+	}
 	if (target_no < 0 || target_no > 9) target_no = 0;
 	while (!targetable(target_no, skill_no))
 	{
@@ -1007,6 +1051,53 @@ void screen_battle::die(int target)
 		character::bchs[character::bchs[target].prev].next = character::bchs[target].next;
 	if (character::bchs[target].next != -1)
 		character::bchs[character::bchs[target].next].prev = character::bchs[target].prev;
+}
+
+bool screen_battle::push(int& target, int& dist, int d)
+{
+	int target2 = character::bchs[target].next;
+	int nowd = MIN(1 + dist / 10, dist);
+	dist -= nowd;
+	character::bchs[target].x += nowd;
+	if (character::bchs[target].x > 360) character::bchs[target].x = 360;
+
+	if (target2 != -1)
+	{
+		int diff = character::bchs[target].x + (character::bchs[target].width + character::bchs[target2].width) / 2 - character::bchs[target2].x + 1;
+		if (diff >= 0)
+		{
+			for (int i = 0; i < 3; i++)
+				gc.update();
+			dist = (dist + diff) * 2 / 3;
+			if (dist < 10) dist = 10;
+
+			d = MIN(d, (1 + dist / 10) * d / 3);
+			damage(target, d, 0);
+			trigger_deaths();
+			damage(target2, d, 0);
+
+			target = target2;
+			for (target2 = target + 1; target2 < 10; target2++)
+				if (character::bchs[target2].mhp > 0) break;
+		}
+	}
+	if (dist == 0)
+	{
+		trigger_deaths();
+		return true;
+	}
+	return false;
+}
+
+void screen_battle::set_target_mode(int target_no, int target_mode)
+{
+	if (target_no == 10)
+	{
+		for (int i = 1; i < 10; i++)
+			if (character::bchs[i].mhp > 0)
+				character::bchs[i].target_mode = target_mode;
+	}
+	else character::bchs[target_no].target_mode = target_mode;
 }
 
 void screen_battle::enemy_attack(int attacker, int double_attack)
