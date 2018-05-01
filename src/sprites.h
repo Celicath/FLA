@@ -13,5 +13,5 @@ void CopySpriteAlpha(const color_t* sprite, int x, int y, int width, int height,
 
 extern const color_t sprite_enemy1[];
 extern const color_t sprite_flipp[7][1024];
-extern const color_t sprite_command[3][1024];
-extern const color_t sprite_icons[9][1024];
+extern const color_t sprite_spells[9][1024];
+extern const color_t sprite_passives[3][1024];

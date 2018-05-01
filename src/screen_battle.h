@@ -20,7 +20,7 @@ private:
 	int state;
 	int target_timer;
 
-	int spells[4]; // currently drawn spells
+	int commands[10]; // basic commands + currently drawn spells
 
 	effect effects[10];
 

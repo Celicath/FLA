@@ -78,6 +78,9 @@
     <ClCompile Include="..\src\effect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\upgrade.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\prizm-winsim\prizmsim.h">
@@ -126,6 +129,9 @@
       <Filter>prizm-winsim</Filter>
     </ClInclude>
     <ClInclude Include="..\src\effect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\upgrade.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

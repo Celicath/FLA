@@ -5,7 +5,8 @@ class player
 {
 public:
 	player();
-	int upgrades[100];
+	int spells[80];
+	int passives[80];
 	int num_spells;
 	int cards_left;
 	int deck[80];

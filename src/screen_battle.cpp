@@ -115,8 +115,7 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 
 	switch (spell_no)
 	{
-	case 5:
-		// fireball
+	case SPELL_FIREBALL:
 		for (int k = 0; k < 7; k++)
 		{
 			int t = frame - 6 + k;
@@ -136,8 +135,7 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 			else BdispH_AreaFill(sx - 7, sx + 7, sy - 7, sy + 7, COLOR_WHITE);
 		}
 		break;
-	case 6:
-		// ice spear
+	case SPELL_ICE_LANCE:
 		{
 			if (frame >= 67) break;
 			int t = frame > 64 ? 64 : frame;
@@ -150,7 +148,7 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 					for (int j = 1; j < 31; j++)
 					{
 						if (i - j > 7 || j * 2 - i > 26) continue;
-						color_t c = sprite_icons[6][(31 - j) * 32 + i];
+						color_t c = sprite_spells[SPELL_ICE_LANCE][(31 - j) * 32 + i];
 						if (c != 0xE7DF)
 							VRAM[(sy + j - 16) * LCD_WIDTH_PX + (sx + i - 16)] = c;
 					}
@@ -158,8 +156,7 @@ void screen_battle::draw_spell_effect(int spell_no, int frame, int draw_mode)
 			else BdispH_AreaFill(sx - 16, sx + 15, sy - 16, sy + 15, COLOR_WHITE);
 		}
 		break;
-	case 7:
-		// aerial
+	case SPELL_AERIAL:
 		{
 			if (frame == 72) break;
 			int t = frame > 64 ? 64 : frame;
@@ -330,8 +327,8 @@ void screen_battle::draw()
 		int sx = 40 * command_no + 107;
 		int sy = drawing_frame < 32 ? 163 + (32 - drawing_frame) * (32 - drawing_frame) / 32 : 163;
 		if (drawing_frame > 32)
-			CopySpriteAlpha(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32, 0, 64 - drawing_frame);
-		else CopySprite(sprite_icons[spells[command_no - 3]], sx, sy, 32, 32);
+			CopySpriteAlpha(sprite_spells[commands[command_no]], sx, sy, 32, 32, 0, 64 - drawing_frame);
+		else CopySprite(sprite_spells[commands[command_no]], sx, sy, 32, 32);
 		prev_drawing_frame = drawing_frame;
 	}
 	else if (state == 5)
@@ -340,13 +337,6 @@ void screen_battle::draw()
 		prev_drawing_frame = drawing_frame;
 	}
 }
-
-const char command_text[][8] =
-{
-	"Jump",
-	"Dive",
-	"Defend",
-};
 
 void screen_battle::redraw()
 {
@@ -388,20 +378,20 @@ int screen_battle::routine()
 				do
 				{
 					command_no = (command_no + 1) % 7;
-				} while (command_no >= 3 && !spells[command_no - 3]);
+				} while (command_no >= 3 && !commands[command_no]);
 			}
 			if (keys.left)
 			{
 				do
 				{
 					command_no = (command_no + 6) % 7;
-				} while (command_no >= 3 && !spells[command_no - 3]);
+				} while (command_no >= 3 && !commands[command_no]);
 			}
 			if (keys.action)
 			{
 				if (command_no >= 3 && character::bchs[0].sp < 1)
 					break;
-				find_target(command_no >= 3 ? spells[command_no - 3] : command_no);
+				find_target(commands[command_no]);
 				state = 1;
 			}
 			break;
@@ -416,7 +406,7 @@ int screen_battle::routine()
 					{
 						target_no = character::bchs[target_no].next;
 						if (target_no == -1) target_no = 0;
-					} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+					} while (!targetable(target_no, commands[command_no]));
 				}
 			}
 			if (keys.left)
@@ -429,7 +419,7 @@ int screen_battle::routine()
 					{
 						target_no--;
 						if (target_no < 0) target_no = 9;
-					} while (!targetable(target_no, command_no >= 3 ? spells[command_no - 3] : command_no));
+					} while (!targetable(target_no, commands[command_no]));
 				}
 			}
 			set_target_mode(target_no, 1);
@@ -449,7 +439,7 @@ int screen_battle::routine()
 				else
 				{
 					character::bchs[0].sp--;
-					play_spell(spells[command_no - 3], target_no);
+					play_spell(commands[command_no], target_no);
 				}
 				set_target_mode(target_no, -1);
 
@@ -764,7 +754,7 @@ void screen_battle::play_spell(int spell_no, int target)
 		gc.update(i == 64);
 	}
 	state = prev_state;
-	spells[command_no - 3] = 0;
+	commands[command_no] = 0;
 	player::pl.cards_left--;
 	player::pl.deck[command_no - 3] = player::pl.deck[player::pl.cards_left];
 
@@ -772,16 +762,16 @@ void screen_battle::play_spell(int spell_no, int target)
 
 	command_no = spell_no;
 
-	if (spell_no == 3)
+	if (spell_no == SPELL_GAIN_STRENGTH)
 	{
 		character::bchs[target].attack++;
 		character::bchs[target].attack_temp++;
 	}
-	else if (spell_no == 4)
+	else if (spell_no == SPELL_POTION)
 	{
 		heal(target, 10);
 	}
-	else if (spell_no == 5)
+	else if (spell_no == SPELL_FIREBALL)
 	{
 		state = 5;
 		prev_drawing_frame = 0;
@@ -792,7 +782,7 @@ void screen_battle::play_spell(int spell_no, int target)
 		}
 		damage(target, 6, 0);
 	}
-	else if (spell_no == 6)
+	else if (spell_no == SPELL_ICE_LANCE)
 	{
 		state = 5;
 		prev_drawing_frame = 0;
@@ -815,7 +805,7 @@ void screen_battle::play_spell(int spell_no, int target)
 			add_effect(buffer, character::bchs[target].x - 5, character::bchs[target].y - 15, TEXT_COLOR_BLACK);
 		}
 	}
-	else if (spell_no == 7)
+	else if (spell_no == SPELL_AERIAL)
 	{
 		state = 5;
 		prev_drawing_frame = 0;
@@ -833,7 +823,7 @@ void screen_battle::play_spell(int spell_no, int target)
 		while (!push(target, dist, 2))
 			gc.update();
 	}
-	else if (spell_no == 8)
+	else if (spell_no == SPELL_EARTHQUAKE)
 	{
 		state = 5;
 		gc.update(true);
@@ -879,11 +869,13 @@ int screen_battle::heal(int target, int amount)
 void screen_battle::prepare_spells()
 {
 	character::bchs[0].sp = character::bchs[0].msp;
-	spells[0] = spells[1] = spells[2] = spells[3] = 0;
+	for (int i = 0; i < 10; i++)
+		commands[i] = i * (i < 3);
+
 	if (player::pl.cards_left <= 3)
 	{
 		for (int i = 0; i < player::pl.cards_left; i++)
-			spells[i] = player::pl.deck[i];
+			commands[i + 3] = player::pl.deck[i];
 	}
 	else
 	{
@@ -895,7 +887,7 @@ void screen_battle::prepare_spells()
 			player::pl.deck[j] = tmp;
 		}
 		for (int i = 0; i < 3 + (player::pl.num_spells >= 10); i++)
-			spells[i] = player::pl.deck[i];
+			commands[i + 3] = player::pl.deck[i];
 	}
 }
 
@@ -916,13 +908,8 @@ void screen_battle::draw_icons(int always_draw)
 	for (int i = istart; i <= iend; i++)
 	{
 		int sx = 40 * i + 32 + (i >= 3 ? 75 : 0);
-		if (i < 3)
-			CopySprite(sprite_command[i], sx, 195, 32, 32);
-		else
-		{
-			if (!spells[i - 3]) continue;
-			CopySprite(sprite_icons[spells[i - 3]], sx, 195, 32, 32);
-		}
+		if (i == 0 || commands[i])
+			CopySprite(sprite_spells[commands[i]], sx, 195, 32, 32);
 
 		if (command_no == i)
 		{
@@ -933,7 +920,7 @@ void screen_battle::draw_icons(int always_draw)
 			else if (state == 1)
 				BdispH_AreaReverse(sx - 15, sx + 14, 180, 209);
 
-			const char* tx = i < 3 ? command_text[command_no] : upgrade_name[spells[command_no - 3]];
+			const char* tx = spell_name[commands[command_no]];
 
 			int x = 0;
 			int y = 163;
@@ -1071,7 +1058,7 @@ bool screen_battle::push(int& target, int& dist, int d)
 			dist = (dist + diff) * 2 / 3;
 			if (dist < 10) dist = 10;
 
-			d = MIN(d, (1 + dist / 10) * d / 3);
+			d = MIN(d, dist * d / 10);
 			damage(target, d, 0);
 			trigger_deaths();
 			damage(target2, d, 0);

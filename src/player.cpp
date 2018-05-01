@@ -1,6 +1,7 @@
 #include "player.h"
 #include "screen_battle.h"
 #include "display_helper.h"
+#include "upgrade.h"
 
 player player::pl;
 
@@ -10,21 +11,22 @@ player::player()
 
 void player::init_player()
 {
-	memset(upgrades, 0, sizeof(upgrades));
-	upgrades[3] = 1;
-	upgrades[4] = 1;
+	memset(spells, 0, sizeof(spells));
+	memset(passives, 0, sizeof(passives));
+	spells[SPELL_GAIN_STRENGTH] = 1;
+	spells[SPELL_POTION] = 1;
 	rest = 0;
 }
 
 void player::set_character(character& ch)
 {
-	ch.level = -1;
-	for (int i = 0; i < 100; i++)
-		ch.level += upgrades[i];
-	ch.hp = ch.mhp = 18 + ch.level * 2;
-	ch.attack = 2 + upgrades[0];
-	ch.defense = 0 + upgrades[1];
-	ch.speed = 2 + upgrades[2];
+	ch.level = 1;
+	for (int i = 0; i < 80; i++)
+		ch.level += passives[i];
+	ch.hp = ch.mhp = 5 + ch.level * 5;
+	ch.attack = 2 + passives[PASSIVE_ATTACK];
+	ch.defense = 0 + passives[PASSIVE_DEFENSE];
+	ch.speed = 2 + passives[PASSIVE_SPEED];
 	ch.hpbar = HPBAR_INTERVALS;
 	ch.attack_temp = ch.defense_temp = ch.speed_temp = 0;
 
@@ -34,13 +36,9 @@ void player::set_character(character& ch)
 void player::set_deck()
 {
 	num_spells = 0;
-	for (int i = 3; i < 100; i++)
-	{
-		for (int j = 0; j < upgrades[i]; j++)
-		{
+	for (int i = 3; i < 80; i++)
+		for (int j = 0; j < spells[i]; j++)
 			deck[num_spells++] = i;
-		}
-	}
 	cards_left = num_spells;
 }
 

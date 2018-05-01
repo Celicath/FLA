@@ -70,6 +70,7 @@
     <ClCompile Include="..\src\sprites.cpp" />
     <ClCompile Include="..\src\game_control.cpp" />
     <ClCompile Include="..\src\screen_upgrade.cpp" />
+    <ClCompile Include="..\src\upgrade.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
     <None Include="..\..\calctype\calctype.inl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
@@ -97,6 +98,7 @@
     <ClInclude Include="..\src\screen_upgrade.h" />
     <ClInclude Include="..\src\sprites.h" />
     <ClInclude Include="..\src\game_control.h" />
+    <ClInclude Include="..\src\upgrade.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\..\prizm-winsim\prizmfont.h" />
   </ItemGroup>

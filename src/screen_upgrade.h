@@ -1,21 +1,7 @@
 #pragma once
 
 #include "screen.h"
-
-class upgrade
-{
-public:
-	int no;
-	int selected;
-
-	upgrade() { }
-	upgrade(int no_);
-
-	void draw(int x, int y);
-
-	static void get_description(char* buffer, int no);
-};
-
+#include "upgrade.h"
 
 class screen_upgrade : public screen {
 public:
@@ -35,5 +21,3 @@ private:
 	int num_options;
 	upgrade ups[8];
 };
-
-extern const char upgrade_name[][16];
